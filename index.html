@@ -20,7 +20,7 @@
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-dark);
             color: #ffffff;
-            height: 100dvh;
+            height: 100dvh; /* Dynamic Height per mobile */
             overflow: hidden;
             touch-action: none; 
             user-select: none;
@@ -48,6 +48,7 @@
             transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.1s;
             cursor: pointer;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-game:active {
             transform: scale(0.94);
@@ -65,6 +66,13 @@
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-md mx-auto bg-[#09090b] shadow-2xl relative">
+
+    <!-- ERROR CONSOLE (Hidden by default) -->
+    <div id="debug-console" class="hidden absolute top-0 left-0 w-full h-full bg-red-900/90 z-[100] p-4 text-white font-mono text-xs overflow-auto">
+        <h3 class="text-xl font-bold mb-2">Errore Critico</h3>
+        <p id="error-message">Caricamento...</p>
+        <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-white text-red-900 rounded font-bold">Ricarica App</button>
+    </div>
 
     <!-- HEADER -->
     <header class="flex-none h-[var(--header-h)] flex justify-between items-center px-6 bg-[#09090b] z-20 border-b border-white/5">
@@ -100,22 +108,22 @@
                 <div id="card-container" class="glass-panel w-full h-full rounded-3xl p-4 flex flex-col shadow-xl border-t border-white/10 relative overflow-hidden text-center justify-between">
                     
                     <!-- Content Wrapper to center everything nicely -->
-                    <div class="flex flex-col flex-1">
+                    <div class="flex flex-col flex-1 w-full">
                         
                         <!-- Image Area (Fixed Height) -->
-                        <div id="card-image-wrapper" class="flex-none h-[110px] flex items-center justify-center mb-2 mt-2 hidden">
+                        <div id="card-image-wrapper" class="flex-none h-[110px] flex items-center justify-center mb-2 mt-2 hidden w-full">
                             <!-- SVG Injected Here -->
                         </div>
 
                         <!-- Root Phrase Area -->
-                        <div class="flex-none px-2 pb-3 border-b border-white/5 flex items-center justify-center min-h-[50px]">
+                        <div class="flex-none px-2 pb-3 border-b border-white/5 flex items-center justify-center min-h-[50px] w-full">
                             <p id="card-root" class="text-sm md:text-base font-medium text-gray-400 leading-snug select-none">
-                                Caricamento dati...
+                                Inizializzazione...
                             </p>
                         </div>
 
                         <!-- Completion Phrase Area (Grow to fill) -->
-                        <div class="flex-1 flex items-center justify-center px-2 py-2 overflow-y-auto no-scrollbar">
+                        <div class="flex-1 flex items-center justify-center px-2 py-2 overflow-y-auto no-scrollbar w-full">
                             <p id="card-completion" class="text-lg md:text-2xl font-bold text-white leading-snug select-none">
                                 --
                             </p>
@@ -132,11 +140,11 @@
 
             <!-- Controls -->
             <div class="flex-none h-24 grid grid-cols-2 gap-4 pb-1 pt-2">
-                <button onclick="app.checkAnswer(false)" class="btn-game rounded-2xl bg-[#2c1517] border border-red-900/40 text-red-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-red-900/30">
+                <button onclick="window.app.checkAnswer(false)" class="btn-game rounded-2xl bg-[#2c1517] border border-red-900/40 text-red-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-red-900/30">
                     <i class="ph-bold ph-x text-3xl mb-1 pointer-events-none"></i>
                     <span class="pointer-events-none">FALSO</span>
                 </button>
-                <button onclick="app.checkAnswer(true)" class="btn-game rounded-2xl bg-[#132e21] border border-green-900/40 text-green-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-green-900/30">
+                <button onclick="window.app.checkAnswer(true)" class="btn-game rounded-2xl bg-[#132e21] border border-green-900/40 text-green-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-green-900/30">
                     <i class="ph-bold ph-check text-3xl mb-1 pointer-events-none"></i>
                     <span class="pointer-events-none">VERO</span>
                 </button>
@@ -151,7 +159,7 @@
             <h2 class="text-xl font-bold text-white mb-2 mt-6 flex-none">Argomenti</h2>
             <div id="selection-list" class="flex-1 overflow-y-auto no-scrollbar space-y-3 pb-24 pr-2"></div>
             <div class="flex-none h-24 w-full pb-6 pt-2 bg-[#09090b]">
-                <button onclick="app.startStudyMode()" class="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl active:scale-95 transition-transform">
+                <button onclick="window.app.startStudyMode()" class="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl active:scale-95 transition-transform">
                     AVVIA RIPASSO
                 </button>
             </div>
@@ -164,23 +172,24 @@
 
     <!-- NAVIGATION -->
     <nav class="flex-none h-[var(--nav-h)] bg-[#09090b] border-t border-white/5 flex items-start justify-around pt-4 z-30 pb-safe">
-        <button onclick="app.setMode('mix')" id="nav-mix" class="flex flex-col items-center gap-1 text-purple-400 w-20 active:scale-90 transition-transform">
+        <button onclick="window.app.setMode('mix')" id="nav-mix" class="flex flex-col items-center gap-1 text-purple-400 w-20 active:scale-90 transition-transform">
             <i class="ph-fill ph-shuffle text-2xl"></i>
             <span class="text-[10px] font-bold">Mix</span>
         </button>
-        <button onclick="app.toggleSelectionView()" id="nav-study" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
+        <button onclick="window.app.toggleSelectionView()" id="nav-study" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
             <i class="ph-fill ph-student text-2xl"></i>
             <span class="text-[10px] font-bold">Studio</span>
         </button>
-        <button onclick="app.setMode('pattern')" id="nav-pattern" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
+        <button onclick="window.app.setMode('pattern')" id="nav-pattern" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
             <i class="ph-fill ph-wall text-2xl"></i>
             <span class="text-[10px] font-bold">Muro</span>
         </button>
     </nav>
 
     <script>
-        // --- DATA INJECTION (Sicuro) ---
-        const DATA_SOURCE = `
+        try {
+            // --- DATA SOURCE (Robust String) ---
+            const DATA_SOURCE = `
 Listato A B 2026
 Metodo: Pattern Matching
 Lezione: 01.1 Definizioni stradali e di traffico
@@ -1011,284 +1020,295 @@ In presenza del segnale raffigurato (007)...
 [ F ] ...posto su strade a due corsie e a doppio senso, è consentito sorpassare un veicolo molto lento
 `;
 
-        const app = {
-            data: { lessons: [] },
-            queue: [],
-            index: 0,
-            streak: 0,
-            busy: false,
+            // --- APP LOGIC ---
+            window.app = {
+                data: { lessons: [] },
+                queue: [],
+                index: 0,
+                streak: 0,
+                busy: false,
 
-            // SVG Generators
-            getSignalSVG: function(code) {
-                const base = `<svg viewBox="0 0 100 100" class="traffic-sign-svg"><path d="M50 5 L95 90 L5 90 Z" fill="white" stroke="#cc0000" stroke-width="8" stroke-linejoin="round"/>`;
-                const content = {
-                    '001': '<path d="M25 70 Q35 50 50 70 Q65 50 75 70" fill="none" stroke="black" stroke-width="8" stroke-linecap="round" />', // Deformata (bumps line)
-                    '002': '<path d="M25 70 Q50 30 75 70" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />', // Dosso (Single bump)
-                    '003': '<path d="M25 50 Q50 90 75 50" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />', // Cunetta (Dip)
-                    '004': '<path d="M40 75 V55 Q40 40 70 45 L65 35 L80 50 L65 65 L70 55 Q50 50 50 75" fill="black" />', // Curva Dx
-                    '005': '<path d="M60 75 V55 Q60 40 30 45 L35 35 L20 50 L35 65 L30 55 Q50 50 50 75" fill="black" />', // Curva Sx
-                    '006': '<path d="M35 75 V60 Q35 45 50 45 Q65 45 65 35 L55 35 L70 20 L85 35 L75 35 Q75 55 50 55 Q45 55 45 75" fill="black" />', // Doppia Dx
-                    '007': '<path d="M65 75 V60 Q65 45 50 45 Q35 45 35 35 L45 35 L30 20 L15 35 L25 35 Q25 55 50 55 Q55 55 55 75" fill="black" />' // Doppia Sx
-                };
-                return content[code] ? base + content[code] + '</svg>' : null;
-            },
+                // SVG Generators
+                getSignalSVG: function(code) {
+                    const base = `<svg viewBox="0 0 100 100" class="traffic-sign-svg"><path d="M50 5 L95 90 L5 90 Z" fill="white" stroke="#cc0000" stroke-width="8" stroke-linejoin="round"/>`;
+                    const content = {
+                        '001': '<path d="M25 70 Q35 50 50 70 Q65 50 75 70" fill="none" stroke="black" stroke-width="8" stroke-linecap="round" />', 
+                        '002': '<path d="M25 70 Q50 30 75 70" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />',
+                        '003': '<path d="M25 50 Q50 90 75 50" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />',
+                        '004': '<path d="M40 75 V55 Q40 40 70 45 L65 35 L80 50 L65 65 L70 55 Q50 50 50 75" fill="black" />',
+                        '005': '<path d="M60 75 V55 Q60 40 30 45 L35 35 L20 50 L35 65 L30 55 Q50 50 50 75" fill="black" />',
+                        '006': '<path d="M35 75 V60 Q35 45 50 45 Q65 45 65 35 L55 35 L70 20 L85 35 L75 35 Q75 55 50 55 Q45 55 45 75" fill="black" />',
+                        '007': '<path d="M65 75 V60 Q65 45 50 45 Q35 45 35 35 L45 35 L30 20 L15 35 L25 35 Q25 55 50 55 Q55 55 55 75" fill="black" />'
+                    };
+                    return content[code] ? base + content[code] + '</svg>' : null;
+                },
 
-            cleanText: function(t) { return t.replace(/…/g, '...').replace(/•/g, '').trim(); },
+                cleanText: function(t) { return t.replace(/…/g, '...').replace(/•/g, '').trim(); },
 
-            parseData: function() {
-                const lines = DATA_SOURCE.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                let lesson = null, topic = null, root = null;
-                
-                lines.forEach(line => {
-                    if (line.startsWith('Lezione:')) {
-                        lesson = { id: this.data.lessons.length, title: this.cleanText(line.replace('Lezione:', '')), topics: [] };
-                        this.data.lessons.push(lesson);
-                        topic = null; root = null;
-                    } else if (line.startsWith('Argomento:')) {
-                        if (!lesson) { 
-                            lesson = { id: 0, title: "Generale", topics: [] };
-                            this.data.lessons.push(lesson);
-                        }
-                        const imgMatch = line.match(/\((\d{3})\)/);
-                        const imgCode = imgMatch ? imgMatch[1] : null;
-                        const titleClean = this.cleanText(line.replace('Argomento:', '').replace(/\(\d{3}\)/, ''));
-                        topic = { title: titleClean, imageCode: imgCode, roots: [] };
-                        lesson.topics.push(topic);
-                        root = null;
-                    } else if (line.startsWith('[ V ]') || line.startsWith('[ F ]')) {
-                        if (root) {
-                            const isTrue = line.startsWith('[ V ]');
-                            const text = this.cleanText(line.substring(5));
-                            root.items.push({ text, isTrue });
-                        }
-                    } else if (!line.startsWith('Listato') && !line.startsWith('Metodo:')) {
-                        if (topic) {
-                            root = { text: this.cleanText(line), items: [] };
-                            topic.roots.push(root);
-                        }
-                    }
-                });
-            },
+                parseData: function() {
+                    const lines = DATA_SOURCE.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                    let lesson = null, topic = null, root = null;
+                    
+                    lines.forEach(line => {
+                        try {
+                            if (line.startsWith('Lezione:')) {
+                                lesson = { id: this.data.lessons.length, title: this.cleanText(line.replace('Lezione:', '')), topics: [] };
+                                this.data.lessons.push(lesson);
+                                topic = null; root = null;
+                            } else if (line.startsWith('Argomento:')) {
+                                if (!lesson) { 
+                                    lesson = { id: 0, title: "Generale", topics: [] };
+                                    this.data.lessons.push(lesson);
+                                }
+                                const imgMatch = line.match(/\((\d{3})\)/);
+                                const imgCode = imgMatch ? imgMatch[1] : null;
+                                const titleClean = this.cleanText(line.replace('Argomento:', '').replace(/\(\d{3}\)/, ''));
+                                topic = { title: titleClean, imageCode: imgCode, roots: [] };
+                                lesson.topics.push(topic);
+                                root = null;
+                            } else if (line.match(/^\[\s*[VF]\s*\]/i)) { // Robust Regex Match
+                                if (root) {
+                                    const isTrue = line.includes('V');
+                                    const text = this.cleanText(line.substring(line.indexOf(']') + 1));
+                                    root.items.push({ text, isTrue });
+                                }
+                            } else if (!line.startsWith('Listato') && !line.startsWith('Metodo:')) {
+                                if (topic) {
+                                    root = { text: this.cleanText(line), items: [] };
+                                    topic.roots.push(root);
+                                }
+                            }
+                        } catch(e) { console.warn("Line parse error", e); }
+                    });
+                },
 
-            initGame: function(mode, selectedIds = []) {
-                this.queue = [];
-                this.index = 0;
-                this.streak = 0;
-                this.busy = false;
-                document.getElementById('streak-display').innerText = '0';
+                initGame: function(mode, selectedIds = []) {
+                    this.queue = [];
+                    this.index = 0;
+                    this.streak = 0;
+                    this.busy = false;
+                    document.getElementById('streak-display').innerText = '0';
 
-                const lessons = mode === 'mix' ? this.data.lessons : this.data.lessons.filter(l => selectedIds.includes(l.id));
-                
-                lessons.forEach(l => {
-                    l.topics.forEach(t => {
-                        t.roots.forEach(r => {
-                            r.items.forEach(i => {
-                                this.queue.push({
-                                    lesson: l.title, topic: t.title,
-                                    root: r.text, completion: i.text, isTrue: i.isTrue,
-                                    imageCode: t.imageCode
+                    const lessons = mode === 'mix' ? this.data.lessons : this.data.lessons.filter(l => selectedIds.includes(l.id));
+                    
+                    lessons.forEach(l => {
+                        l.topics.forEach(t => {
+                            t.roots.forEach(r => {
+                                r.items.forEach(i => {
+                                    this.queue.push({
+                                        lesson: l.title, topic: t.title,
+                                        root: r.text, completion: i.text, isTrue: i.isTrue,
+                                        imageCode: t.imageCode
+                                    });
                                 });
                             });
                         });
                     });
-                });
 
-                if (mode === 'mix') this.queue.sort(() => Math.random() - 0.5);
+                    if (mode === 'mix') this.queue.sort(() => Math.random() - 0.5);
 
-                if (this.queue.length > 0) {
-                    this.renderCard();
-                } else {
-                    document.getElementById('card-root').innerText = "Nessuna domanda caricata.";
-                    document.getElementById('card-completion').innerText = "Riprova.";
-                }
-            },
+                    if (this.queue.length > 0) {
+                        this.renderCard();
+                    } else {
+                        document.getElementById('card-root').innerText = "Nessuna domanda caricata.";
+                        document.getElementById('card-completion').innerText = "Controlla i dati.";
+                    }
+                },
 
-            renderCard: function() {
-                if (this.index >= this.queue.length) {
-                    document.getElementById('card-completion').innerText = "Hai finito!";
-                    document.getElementById('card-root').innerText = "Ottimo lavoro 🎉";
-                    document.getElementById('card-image-wrapper').classList.add('hidden');
-                    confetti();
-                    return;
-                }
+                renderCard: function() {
+                    if (this.index >= this.queue.length) {
+                        document.getElementById('card-completion').innerText = "Hai finito!";
+                        document.getElementById('card-root').innerText = "Ottimo lavoro 🎉";
+                        document.getElementById('card-image-wrapper').classList.add('hidden');
+                        confetti();
+                        return;
+                    }
 
-                const item = this.queue[this.index];
-                const imgWrap = document.getElementById('card-image-wrapper');
-                
-                if (item.imageCode) {
-                    const svg = this.getSignalSVG(item.imageCode);
-                    if (svg) {
-                        imgWrap.innerHTML = svg;
-                        imgWrap.classList.remove('hidden');
+                    const item = this.queue[this.index];
+                    const imgWrap = document.getElementById('card-image-wrapper');
+                    
+                    if (item.imageCode) {
+                        const svg = this.getSignalSVG(item.imageCode);
+                        if (svg) {
+                            imgWrap.innerHTML = svg;
+                            imgWrap.classList.remove('hidden');
+                        } else {
+                            imgWrap.classList.add('hidden');
+                        }
                     } else {
                         imgWrap.classList.add('hidden');
                     }
-                } else {
-                    imgWrap.classList.add('hidden');
-                }
 
-                document.getElementById('card-root').innerText = item.root;
-                const compEl = document.getElementById('card-completion');
-                
-                // Anim reset
-                compEl.style.animation = 'none';
-                compEl.offsetHeight; 
-                compEl.style.animation = null; 
-                compEl.innerText = item.completion;
-                compEl.classList.add('anim-enter');
+                    document.getElementById('card-root').innerText = item.root;
+                    const compEl = document.getElementById('card-completion');
+                    
+                    compEl.style.animation = 'none';
+                    compEl.offsetHeight; 
+                    compEl.style.animation = null; 
+                    compEl.innerText = item.completion;
+                    compEl.classList.add('anim-enter');
 
-                document.getElementById('lesson-info').innerText = item.topic;
-                document.getElementById('progress-bar').style.width = `${(this.index / this.queue.length) * 100}%`;
-            },
+                    document.getElementById('lesson-info').innerText = item.topic;
+                    document.getElementById('progress-bar').style.width = `${(this.index / this.queue.length) * 100}%`;
+                },
 
-            checkAnswer: function(choice) {
-                if (this.busy || this.index >= this.queue.length) return;
-                this.busy = true;
+                checkAnswer: function(choice) {
+                    if (this.busy || this.index >= this.queue.length) return;
+                    this.busy = true;
 
-                const item = this.queue[this.index];
-                const isCorrect = choice === item.isTrue;
-                const overlay = document.getElementById('feedback-overlay');
-                const icon = document.getElementById('feedback-icon');
-                const text = document.getElementById('feedback-text');
-                const container = document.getElementById('card-container');
+                    const item = this.queue[this.index];
+                    const isCorrect = choice === item.isTrue;
+                    const overlay = document.getElementById('feedback-overlay');
+                    const icon = document.getElementById('feedback-icon');
+                    const text = document.getElementById('feedback-text');
+                    const container = document.getElementById('card-container');
 
-                overlay.classList.remove('hidden');
-                overlay.classList.add('flex');
+                    overlay.classList.remove('hidden');
+                    overlay.classList.add('flex');
 
-                if (isCorrect) {
-                    this.streak++;
-                    confetti({ particleCount: 20, spread: 40, origin: { y: 0.7 } });
-                    overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-green-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
-                    icon.innerHTML = '<i class="ph-fill ph-check-circle text-green-300"></i>';
-                    text.innerText = "ESATTO!";
-                    text.className = "text-2xl font-bold text-green-300 tracking-wider";
-                } else {
-                    this.streak = 0;
-                    container.classList.add('anim-shake');
-                    overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
-                    icon.innerHTML = '<i class="ph-fill ph-x-circle text-red-300"></i>';
-                    text.innerText = item.isTrue ? "ERA VERO" : "ERA FALSO";
-                    text.className = "text-2xl font-bold text-red-300 tracking-wider";
-                    setTimeout(() => container.classList.remove('anim-shake'), 400);
-                }
+                    if (isCorrect) {
+                        this.streak++;
+                        confetti({ particleCount: 20, spread: 40, origin: { y: 0.7 } });
+                        overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-green-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
+                        icon.innerHTML = '<i class="ph-fill ph-check-circle text-green-300"></i>';
+                        text.innerText = "ESATTO!";
+                        text.className = "text-2xl font-bold text-green-300 tracking-wider";
+                    } else {
+                        this.streak = 0;
+                        container.classList.add('anim-shake');
+                        overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
+                        icon.innerHTML = '<i class="ph-fill ph-x-circle text-red-300"></i>';
+                        text.innerText = item.isTrue ? "ERA VERO" : "ERA FALSO";
+                        text.className = "text-2xl font-bold text-red-300 tracking-wider";
+                        setTimeout(() => container.classList.remove('anim-shake'), 400);
+                    }
 
-                document.getElementById('streak-display').innerText = this.streak;
-                requestAnimationFrame(() => { icon.classList.remove('scale-0'); icon.classList.add('scale-100'); });
+                    document.getElementById('streak-display').innerText = this.streak;
+                    requestAnimationFrame(() => { icon.classList.remove('scale-0'); icon.classList.add('scale-100'); });
 
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                    overlay.classList.remove('flex');
-                    icon.classList.add('scale-0');
-                    icon.classList.remove('scale-100');
-                    this.index++;
-                    this.renderCard();
-                    this.busy = false;
-                }, 800);
-            },
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        overlay.classList.remove('flex');
+                        icon.classList.add('scale-0');
+                        icon.classList.remove('scale-100');
+                        this.index++;
+                        this.renderCard();
+                        this.busy = false;
+                    }, 800);
+                },
 
-            setMode: function(mode) {
-                document.getElementById('view-selection').style.transform = "translateY(100%)";
-                
-                document.querySelectorAll('nav button').forEach(b => {
-                    b.classList.remove('text-purple-400');
-                    b.classList.add('text-gray-500');
-                });
-
-                if (mode === 'pattern') {
-                    document.getElementById('view-game').classList.add('hidden');
-                    document.getElementById('view-pattern').classList.remove('hidden');
-                    document.getElementById('nav-pattern').classList.add('text-purple-400');
-                    this.renderPattern();
-                } else {
-                    document.getElementById('view-pattern').classList.add('hidden');
-                    document.getElementById('view-game').classList.remove('hidden');
-                    document.getElementById('nav-mix').classList.add('text-purple-400');
-                    if (mode === 'mix') this.initGame('mix');
-                }
-            },
-
-            toggleSelectionView: function() {
-                const el = document.getElementById('view-selection');
-                const isOpen = el.style.transform === "translateY(0%)";
-                
-                if (!isOpen) {
-                    this.renderSelectionList();
-                    el.style.transform = "translateY(0%)";
+                setMode: function(mode) {
+                    document.getElementById('view-selection').style.transform = "translateY(100%)";
+                    
                     document.querySelectorAll('nav button').forEach(b => {
                         b.classList.remove('text-purple-400');
                         b.classList.add('text-gray-500');
                     });
-                    document.getElementById('nav-study').classList.add('text-purple-400');
-                } else {
-                    el.style.transform = "translateY(100%)";
-                    this.setMode('mix');
-                }
-            },
 
-            renderSelectionList: function() {
-                const container = document.getElementById('selection-list');
-                container.innerHTML = '';
-                this.data.lessons.forEach(l => {
-                    container.innerHTML += `
-                        <label class="custom-checkbox flex items-center p-4 rounded-xl bg-[#18181b] border border-white/5 cursor-pointer active:scale-[0.98] transition-transform shadow-sm">
-                            <input type="checkbox" value="${l.id}" class="hidden" checked>
-                            <div class="w-6 h-6 rounded-md border-2 border-gray-600 flex items-center justify-center mr-4 transition-colors">
-                                <i class="ph-bold ph-check text-white text-xs"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-sm text-gray-200 leading-tight">${l.title}</h3>
-                                <p class="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider">${l.topics.length} Argomenti</p>
-                            </div>
-                        </label>`;
-                });
-            },
+                    if (mode === 'pattern') {
+                        document.getElementById('view-game').classList.add('hidden');
+                        document.getElementById('view-pattern').classList.remove('hidden');
+                        document.getElementById('nav-pattern').classList.add('text-purple-400');
+                        this.renderPattern();
+                    } else {
+                        document.getElementById('view-pattern').classList.add('hidden');
+                        document.getElementById('view-game').classList.remove('hidden');
+                        document.getElementById('nav-mix').classList.add('text-purple-400');
+                        if (mode === 'mix') this.initGame('mix');
+                    }
+                },
 
-            startStudyMode: function() {
-                const selectedIds = Array.from(document.querySelectorAll('#selection-list input:checked')).map(cb => parseInt(cb.value));
-                if (selectedIds.length === 0) return alert("Seleziona almeno un argomento!");
-                document.getElementById('view-selection').style.transform = "translateY(100%)";
-                document.getElementById('view-pattern').classList.add('hidden');
-                document.getElementById('view-game').classList.remove('hidden');
-                this.initGame('study', selectedIds);
-            },
-
-            renderPattern: function() {
-                const container = document.getElementById('view-pattern');
-                if(container.innerHTML.trim().length > 50) return;
-
-                let html = '';
-                this.data.lessons.forEach(l => {
-                    l.topics.forEach(t => {
-                        const imgSVG = t.imageCode ? `<div class="w-16 h-16 mx-auto mb-2">${this.getSignalSVG(t.imageCode)}</div>` : '';
-                        html += `<div class="mb-6 text-center">
-                            ${imgSVG}
-                            <h3 class="text-xs font-bold text-purple-400 uppercase mb-2 border-b border-purple-500/30 pb-1 inline-block">${t.title}</h3>`;
-                        
-                        t.roots.forEach(r => {
-                            html += `<div class="bg-[#18181b] rounded-xl p-4 mb-3 border border-white/5 text-left shadow-sm">
-                                <p class="text-sm text-gray-400 mb-3 border-b border-white/5 pb-2">${r.text}</p>
-                                <div class="space-y-2">`;
-                            r.items.forEach(i => {
-                                 html += `
-                                    <div class="flex gap-3 items-start">
-                                        <i class="ph-fill ${i.isTrue ? 'ph-check-circle text-green-500' : 'ph-x-circle text-red-500'} mt-0.5 text-lg shrink-0"></i>
-                                        <span class="text-sm text-gray-200 leading-snug">${i.text}</span>
-                                    </div>`;
-                            });
-                            html += `</div></div>`;
+                toggleSelectionView: function() {
+                    const el = document.getElementById('view-selection');
+                    const isOpen = el.style.transform === "translateY(0%)";
+                    
+                    if (!isOpen) {
+                        this.renderSelectionList();
+                        el.style.transform = "translateY(0%)";
+                        document.querySelectorAll('nav button').forEach(b => {
+                            b.classList.remove('text-purple-400');
+                            b.classList.add('text-gray-500');
                         });
-                        html += `</div>`;
-                    });
-                });
-                container.innerHTML = html;
-            }
-        };
+                        document.getElementById('nav-study').classList.add('text-purple-400');
+                    } else {
+                        el.style.transform = "translateY(100%)";
+                        this.setMode('mix');
+                    }
+                },
 
-        // Start
-        window.onload = () => {
-            app.parseData();
-            app.initGame('mix');
-        };
+                renderSelectionList: function() {
+                    const container = document.getElementById('selection-list');
+                    container.innerHTML = '';
+                    this.data.lessons.forEach(l => {
+                        container.innerHTML += `
+                            <label class="custom-checkbox flex items-center p-4 rounded-xl bg-[#18181b] border border-white/5 cursor-pointer active:scale-[0.98] transition-transform shadow-sm">
+                                <input type="checkbox" value="${l.id}" class="hidden" checked>
+                                <div class="w-6 h-6 rounded-md border-2 border-gray-600 flex items-center justify-center mr-4 transition-colors">
+                                    <i class="ph-bold ph-check text-white text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-sm text-gray-200 leading-tight">${l.title}</h3>
+                                    <p class="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider">${l.topics.length} Argomenti</p>
+                                </div>
+                            </label>`;
+                    });
+                },
+
+                startStudyMode: function() {
+                    const selectedIds = Array.from(document.querySelectorAll('#selection-list input:checked')).map(cb => parseInt(cb.value));
+                    if (selectedIds.length === 0) return alert("Seleziona almeno un argomento!");
+                    document.getElementById('view-selection').style.transform = "translateY(100%)";
+                    document.getElementById('view-pattern').classList.add('hidden');
+                    document.getElementById('view-game').classList.remove('hidden');
+                    this.initGame('study', selectedIds);
+                },
+
+                renderPattern: function() {
+                    const container = document.getElementById('view-pattern');
+                    if(container.innerHTML.trim().length > 50) return;
+
+                    let html = '';
+                    this.data.lessons.forEach(l => {
+                        l.topics.forEach(t => {
+                            const imgSVG = t.imageCode ? `<div class="w-16 h-16 mx-auto mb-2">${this.getSignalSVG(t.imageCode)}</div>` : '';
+                            html += `<div class="mb-6 text-center">
+                                ${imgSVG}
+                                <h3 class="text-xs font-bold text-purple-400 uppercase mb-2 border-b border-purple-500/30 pb-1 inline-block">${t.title}</h3>`;
+                            
+                            t.roots.forEach(r => {
+                                html += `<div class="bg-[#18181b] rounded-xl p-4 mb-3 border border-white/5 text-left shadow-sm">
+                                    <p class="text-sm text-gray-400 mb-3 border-b border-white/5 pb-2">${r.text}</p>
+                                    <div class="space-y-2">`;
+                                r.items.forEach(i => {
+                                     html += `
+                                        <div class="flex gap-3 items-start">
+                                            <i class="ph-fill ${i.isTrue ? 'ph-check-circle text-green-500' : 'ph-x-circle text-red-500'} mt-0.5 text-lg shrink-0"></i>
+                                            <span class="text-sm text-gray-200 leading-snug">${i.text}</span>
+                                        </div>`;
+                                });
+                                html += `</div></div>`;
+                            });
+                            html += `</div>`;
+                        });
+                    });
+                    container.innerHTML = html;
+                }
+            };
+
+            // Start
+            window.onload = () => {
+                try {
+                    window.app.parseData();
+                    window.app.initGame('mix');
+                } catch(e) {
+                    document.getElementById('debug-console').classList.remove('hidden');
+                    document.getElementById('error-message').innerText = e.toString();
+                }
+            };
+        } catch(globalError) {
+            document.getElementById('debug-console').classList.remove('hidden');
+            document.getElementById('error-message').innerText = "Global Error: " + globalError.toString();
+        }
     </script>
 </body>
 </html>
