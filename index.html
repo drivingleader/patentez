@@ -2,1313 +2,493 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Patente Z 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Patente 2026 - Gen Z Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #09090b;
-            --header-h: 60px;
-            --nav-h: 80px;
+            --neon-green: #ccff00;
+            --neon-purple: #b92b27;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --correct: #00e676;
+            --wrong: #ff1744;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
-            color: #ffffff;
-            height: 100dvh; /* Dynamic Height per mobile */
-            overflow: hidden;
-            touch-action: none; 
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .glass-panel {
-            background: rgba(30, 30, 35, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
-        
-        .anim-enter { animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-        .anim-shake { animation: shake 0.3s ease-in-out; }
-
-        .btn-game {
-            transform: scale(1);
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.1s;
-            cursor: pointer;
-            touch-action: manipulation;
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
-        .btn-game:active {
-            transform: scale(0.94);
-            filter: brightness(1.2);
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--dark-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 10px; }
+
+        .glass-panel {
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* SVG Styles */
-        .traffic-sign-svg {
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
-            height: 100px;
-            width: auto;
-            margin: 0 auto;
-            display: block;
+        .gradient-text {
+            background: linear-gradient(90deg, #ccff00, #00ffcc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
+        .btn-press {
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-press:active {
+            transform: scale(0.95);
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .anim-slide-in { animation: slideIn 0.4s ease-out forwards; }
+        .anim-pop { animation: pop 0.3s ease-out; }
+        .anim-shake { animation: shake 0.3s ease-in-out; }
+
+        .true-btn { background-color: rgba(0, 230, 118, 0.2); border: 2px solid var(--correct); color: var(--correct); }
+        .false-btn { background-color: rgba(255, 23, 68, 0.2); border: 2px solid var(--wrong); color: var(--wrong); }
+        
+        .image-container img {
+            max-height: 25vh;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
+            transition: transform 0.3s ease;
+        }
+        .image-container img:hover {
+            transform: scale(1.05);
+        }
+
+        #progress-bar { transition: width 0.3s ease; }
     </style>
 </head>
-<body class="flex flex-col h-full w-full max-w-md mx-auto bg-[#09090b] shadow-2xl relative">
+<body class="h-screen flex flex-col">
 
-    <!-- ERROR CONSOLE (Hidden by default) -->
-    <div id="debug-console" class="hidden absolute top-0 left-0 w-full h-full bg-red-900/90 z-[100] p-4 text-white font-mono text-xs overflow-auto">
-        <h3 class="text-xl font-bold mb-2">Errore Critico</h3>
-        <p id="error-message">Caricamento...</p>
-        <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-white text-red-900 rounded font-bold">Ricarica App</button>
-    </div>
-
-    <!-- HEADER -->
-    <header class="flex-none h-[var(--header-h)] flex justify-between items-center px-6 bg-[#09090b] z-20 border-b border-white/5">
-        <div>
-            <h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 tracking-tight">
-                Patente Z 2026
-            </h1>
-            <p id="header-subtitle" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Mix Mode</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 rounded-full border border-gray-800">
-                <span class="text-green-500 text-sm">🔥</span>
-                <span id="streak-display" class="font-bold text-sm text-gray-200">0</span>
-            </div>
+    <!-- Header -->
+    <header class="p-4 flex justify-between items-center glass-panel sticky top-0 z-50">
+        <div class="font-bold text-xl tracking-tighter">DRIVE<span class="text-[var(--neon-green)]">2026</span></div>
+        <div id="stats-display" class="hidden text-sm font-medium bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
+            🔥 <span id="streak-counter">0</span> | 🏆 <span id="score-counter">0</span>
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 relative w-full overflow-hidden">
+    <!-- Main Content Area -->
+    <main id="app-container" class="flex-grow relative overflow-hidden flex flex-col items-center justify-center p-4">
         
-        <!-- VIEW: GAME -->
-        <div id="view-game" class="absolute inset-0 flex flex-col px-4 pb-2 z-10 bg-[#09090b]">
-            
-            <!-- Progress -->
-            <div class="flex-none h-4 flex items-center justify-center mt-3 mb-1">
-                 <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                    <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-0 transition-all duration-300"></div>
-                </div>
+        <!-- VIEW: Home / Topic Selection -->
+        <div id="home-view" class="w-full max-w-md space-y-6 anim-slide-in">
+            <div class="text-center space-y-2">
+                <h1 class="text-4xl font-bold leading-none">Ready to <br><span class="gradient-text">Level Up?</span></h1>
+                <p class="text-gray-400 text-sm">Seleziona un modulo per iniziare il pattern matching.</p>
             </div>
 
-            <!-- Card Container -->
-            <div class="flex-1 flex flex-col justify-center min-h-0 py-2 relative">
-                <div id="card-container" class="glass-panel w-full h-full rounded-3xl p-4 flex flex-col shadow-xl border-t border-white/10 relative overflow-hidden text-center justify-between">
-                    
-                    <!-- Content Wrapper to center everything nicely -->
-                    <div class="flex flex-col flex-1 w-full">
-                        
-                        <!-- Image Area (Fixed Height) -->
-                        <div id="card-image-wrapper" class="flex-none h-[110px] flex items-center justify-center mb-2 mt-2 hidden w-full">
-                            <!-- SVG Injected Here -->
-                        </div>
+            <div class="grid grid-cols-1 gap-3 overflow-y-auto max-h-[60vh] pb-20 pr-1">
+                <!-- Generated via JS -->
+                <div id="topics-list" class="space-y-3"></div>
+            </div>
+        </div>
 
-                        <!-- Root Phrase Area -->
-                        <div class="flex-none px-2 pb-3 border-b border-white/5 flex items-center justify-center min-h-[50px] w-full">
-                            <p id="card-root" class="text-sm md:text-base font-medium text-gray-400 leading-snug select-none">
-                                Inizializzazione...
-                            </p>
-                        </div>
+        <!-- VIEW: Quiz / Pattern Matcher -->
+        <div id="quiz-view" class="hidden w-full max-w-md h-full flex flex-col justify-between py-2">
+            
+            <!-- Progress -->
+            <div class="w-full bg-gray-800 h-2 rounded-full mb-4 overflow-hidden">
+                <div id="progress-bar" class="h-full bg-[var(--neon-green)] w-0"></div>
+            </div>
 
-                        <!-- Completion Phrase Area (Grow to fill) -->
-                        <div class="flex-1 flex items-center justify-center px-2 py-2 overflow-y-auto no-scrollbar w-full">
-                            <p id="card-completion" class="text-lg md:text-2xl font-bold text-white leading-snug select-none">
-                                --
-                            </p>
-                        </div>
-                    </div>
+            <!-- Card -->
+            <div id="card-area" class="flex-grow flex flex-col bg-[#1e1e1e] rounded-3xl p-6 border border-gray-800 shadow-2xl relative overflow-y-auto">
+                
+                <!-- Topic Label -->
+                <div class="flex justify-between items-start mb-4">
+                    <span id="q-topic" class="text-xs font-bold text-gray-500 uppercase tracking-widest">Argomento</span>
+                    <span id="q-counter" class="text-xs text-gray-600">1/10</span>
+                </div>
 
-                    <!-- Feedback Overlay -->
-                    <div id="feedback-overlay" class="absolute inset-0 z-50 hidden flex-col items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl">
-                        <div id="feedback-icon" class="text-7xl mb-4 transform transition-transform duration-300 scale-0"></div>
-                        <div id="feedback-text" class="text-2xl font-bold text-white tracking-wide"></div>
+                <!-- Visual Focus (Image) -->
+                <div id="q-image-box" class="image-container w-full flex justify-center mb-4 hidden">
+                    <img id="q-image" src="" alt="Segnale Stradale" class="rounded-lg">
+                </div>
+
+                <!-- The ROOT (The Pattern) -->
+                <div class="mb-6">
+                    <p class="text-[var(--neon-green)] text-sm font-bold mb-1">RADICE:</p>
+                    <h2 id="q-root" class="text-2xl md:text-3xl font-bold leading-tight">...</h2>
+                </div>
+
+                <!-- The SUFFIX (The Question) -->
+                <div class="flex-grow flex items-center justify-center bg-[#252525] rounded-xl p-4 border border-gray-700 mb-4">
+                    <p id="q-suffix" class="text-lg md:text-xl text-center leading-relaxed font-medium">...</p>
+                </div>
+
+                <!-- Feedback Overlay -->
+                <div id="feedback-overlay" class="absolute inset-0 z-10 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl">
+                    <div class="text-center transform scale-0 transition-transform duration-200" id="feedback-content">
+                        <div id="feedback-icon" class="text-6xl mb-2"></div>
+                        <div id="feedback-text" class="text-2xl font-bold"></div>
                     </div>
                 </div>
+
             </div>
 
             <!-- Controls -->
-            <div class="flex-none h-24 grid grid-cols-2 gap-4 pb-1 pt-2">
-                <button onclick="window.app.checkAnswer(false)" class="btn-game rounded-2xl bg-[#2c1517] border border-red-900/40 text-red-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-red-900/30">
-                    <i class="ph-bold ph-x text-3xl mb-1 pointer-events-none"></i>
-                    <span class="pointer-events-none">FALSO</span>
+            <div class="grid grid-cols-2 gap-4 mt-4 h-20">
+                <button onclick="handleAnswer(false)" class="btn-press false-btn rounded-2xl text-xl font-bold flex items-center justify-center shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                    FALSO
                 </button>
-                <button onclick="window.app.checkAnswer(true)" class="btn-game rounded-2xl bg-[#132e21] border border-green-900/40 text-green-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-green-900/30">
-                    <i class="ph-bold ph-check text-3xl mb-1 pointer-events-none"></i>
-                    <span class="pointer-events-none">VERO</span>
-                </button>
-            </div>
-            
-            <!-- Lesson Info Footer -->
-            <div id="lesson-info" class="flex-none text-center text-[10px] text-gray-600 font-mono truncate h-4 mb-1 px-4"></div>
-        </div>
-
-        <!-- VIEW: SELECTION MENU -->
-        <div id="view-selection" class="absolute inset-0 flex flex-col px-6 bg-[#09090b] transform translate-y-full transition-transform duration-300 z-20">
-            <h2 class="text-xl font-bold text-white mb-2 mt-6 flex-none">Argomenti</h2>
-            <div id="selection-list" class="flex-1 overflow-y-auto no-scrollbar space-y-3 pb-24 pr-2"></div>
-            <div class="flex-none h-24 w-full pb-6 pt-2 bg-[#09090b]">
-                <button onclick="window.app.startStudyMode()" class="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl active:scale-95 transition-transform">
-                    AVVIA RIPASSO
+                <button onclick="handleAnswer(true)" class="btn-press true-btn rounded-2xl text-xl font-bold flex items-center justify-center shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                    VERO
                 </button>
             </div>
         </div>
 
-        <!-- VIEW: PATTERN WALL -->
-        <div id="view-pattern" class="absolute inset-0 px-6 bg-[#09090b] hidden overflow-y-auto no-scrollbar z-10 pt-4 pb-24"></div>
+        <!-- VIEW: Results -->
+        <div id="results-view" class="hidden w-full max-w-md text-center space-y-8 anim-slide-in">
+            <div class="relative inline-block">
+                <svg class="w-40 h-40 mx-auto" viewBox="0 0 100 100">
+                    <circle class="text-gray-800 stroke-current" stroke-width="8" cx="50" cy="50" r="40" fill="transparent"></circle>
+                    <circle id="score-circle" class="text-[var(--neon-green)] progress-ring__circle stroke-current" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center flex-col">
+                    <span id="final-score" class="text-4xl font-bold">0%</span>
+                    <span class="text-xs text-gray-400">ACCURACY</span>
+                </div>
+            </div>
+
+            <div>
+                <h2 id="result-title" class="text-3xl font-bold mb-2">Not Bad!</h2>
+                <p id="result-msg" class="text-gray-400">Hai completato il modulo. Continua così per dominare l'esame.</p>
+            </div>
+
+            <button onclick="goHome()" class="w-full bg-white text-black py-4 rounded-xl font-bold text-lg btn-press hover:bg-gray-200 transition-colors">
+                TORNA ALLA HOME
+            </button>
+        </div>
 
     </main>
 
-    <!-- NAVIGATION -->
-    <nav class="flex-none h-[var(--nav-h)] bg-[#09090b] border-t border-white/5 flex items-start justify-around pt-4 z-30 pb-safe">
-        <button onclick="window.app.setMode('mix')" id="nav-mix" class="flex flex-col items-center gap-1 text-purple-400 w-20 active:scale-90 transition-transform">
-            <i class="ph-fill ph-shuffle text-2xl"></i>
-            <span class="text-[10px] font-bold">Mix</span>
-        </button>
-        <button onclick="window.app.toggleSelectionView()" id="nav-study" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
-            <i class="ph-fill ph-student text-2xl"></i>
-            <span class="text-[10px] font-bold">Studio</span>
-        </button>
-        <button onclick="window.app.setMode('pattern')" id="nav-pattern" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
-            <i class="ph-fill ph-wall text-2xl"></i>
-            <span class="text-[10px] font-bold">Muro</span>
-        </button>
-    </nav>
-
     <script>
-        try {
-            // --- DATA SOURCE (Robust String) ---
-            const DATA_SOURCE = `
-Listato A B 2026
-Metodo: Pattern Matching
-Lezione: 01.1 Definizioni stradali e di traffico
-Argomento: La strada
-La strada è...
-[ F ] ...riservata alla circolazione dei soli autoveicoli e motocicli
-[ V ] ...aperta alla circolazione dei pedoni, degli animali e dei veicoli
-[ F ] ...qualsiasi area asfaltata, limitata lateralmente dagli attraversamenti pedonali 
-[ F ] …normalmente riservata alla circolazione dei soli veicoli e animali
-La strada può...
-[ V ] ...comprendere le piste ciclabili
-[ V ] ...essere suddivisa in carreggiate
-[ V ] ...essere a doppio senso di circolazione
-[ V ] ...essere a senso unico di circolazione
-La strada non comprende...
-[ F ] ...i marciapiedi
-[ F ] ...le banchine
-Argomento: La carreggiata
-La carreggiata è...
-[ F ] ...destinata soltanto alla circolazione di carri a trazione animale
-[ V ] ...la parte della strada destinata normally alla circolazione dei veicoli
-[ F ] ...destinata alla sosta degli autocarri
-[ F ] ...la traccia lasciata dalle ruote dei veicoli sulle strade innevate
-[ F ] ...destinata alla sosta di emergenza
-La carreggiata può...
-[ V ] ...essere a senso unico di circolazione
-[ V ] ...essere suddivisa in corsie
-[ V ] ...essere a doppio senso di circolazione
-Fanno parte della carreggiata...
-[ V ] ...le corsie di sorpasso
-[ V ] ...le corsie di marcia
-[ V ] ...gli attraversamenti pedonali
-[ V ] ...gli attraversamenti ciclabili
-[ F ] ...i marciapiedi
-[ F ] ...le banchine
-[ F ] ...le corsie di emergenza delle autostrade
-La carreggiata non comprende...
-[ V ] ...non comprende le piste ciclabili
-[ V ] ...non comprende i marciapiedi 
-[ F ] ...comprende le piazzole di sosta
-Argomento: La corsia
-La corsia è...
-[ V ] ...limitata da strisce continue o discontinue
-[ V ] ...una parte della carreggiata che consente la circolazione di una sola fila di veicoli
-[ F ] ...formata da due carreggiate
-[ F ] ...una strada a scorrimento veloce
-[ F ] ...destinata solo al transito dei pedoni
-[ F ] ...una pista riservata alle vetture da corsa
-La corsia può...
-[ F ] ...essere a doppio senso di circolazione
-[ V ] ...essere destinata alla normale marcia dei veicoli
-[ V ] ...essere destinata ad effettuare sorpassi
-[ V ] ...essere destinata al rallentamento dei veicoli in uscita dalle autostrade
-[ V ] ...essere destinata alle soste di emergenza, in caso di guasto o malessere
-[ V ] ...essere riservata ai veicoli che intendono svoltare (corsia specializzata)
-[ V ] ...essere riservata alla circolazione di alcune categorie di veicoli (taxi, autobus, ecc.)
-[ V ] ...essere di accelerazione
-[ V ] ...essere di decelerazione
-La corsia di accelerazione...
-[ V ] ...facilita l'ingresso dei veicoli in autostrada o su strade extraurbane principali
-[ V ] ...serve ad entrare correttamente in autostrada
-[ F ] ...serve per abbandonare la carreggiata dell’autostrada ed entrare in un’area di sosta
-[ V ] ...serve per rientrare sulla carreggiata dell’autostrada dopo che si è usciti da un’area di servizio
-[ V ] ...viene utilizzata per aumentare la velocità
-[ F ] ...serve per uscire da una piazzola di sosta
-[ F ] ...può essere utilizzata per il sorpasso
-La corsia di decelerazione...
-[ V ] ...facilita l'uscita dei veicoli dall'autostrada
-[ F ] ...può essere utilizzata per la sosta dei veicoli
-[ V ] ...serve per uscire correttamente da una strada extraurbana principale
-[ V ] ...serve per uscire dalla carreggiata dell’autostrada ed entrare nell’area di servizio
-[ F ] ...serve ad entrare in autostrada
-[ F ] ...serve per entrare in una piazzola di sosta
-Fuori dai centri abitati...
-[ F ] ...su una stessa corsia possono circolare affiancati due ciclomotori
-Nei centri abitati...
-[ F ] ...su una stessa corsia possono circolare affiancati due motocicli
-Le corsie possono...
-[ V ] ...essere vietate a taluni tipi di veicoli
-L'ente proprietario della strada può...
-[ V ] ...imporre che su una corsia i veicoli transitino ad una velocità minima obbligatoria
-Argomento: Intersezioni a raso e a livelli sfalsati
-L'intersezione (incrocio) a raso...
-[ V ] ...richiede di fare attenzione ai veicoli provenienti dalle strade che si incrociano
-[ V ] ...è un'intersezione di due o più strade poste allo stesso livello
-[ F ] ...è un incrocio fra una strada statale e un passo carrabile
-[ F ] ...è un passaggio a livello dotato di barriere o semibarriere
-[ F ] ...è un incrocio fra una strada statale e i binari del tram
-[ V ] ...può essere regolata da semaforo
-[ F ] ...è un'intersezione a livelli sfalsati
-[ F ] ...è un insieme di sovrappassi, sottopassi e rampe
-Nell'intersezione (incrocio) a...
-[ V ] ...raso due o più strade si incrociano allo stesso livello
-[ F ] ...livelli sfalsati non valgono i limiti massimi generali di velocità
-L'intersezione (incrocio) a livelli sfalsati...
-[ V ] ...è munita di infrastrutture (rampe, sovrappassi, sottopassi) per il collegamento fra strade poste a livelli diversi
-[ V ] ...comprende strade situate ad altezze diverse
-[ V ] ...facilita la circolazione, perché esclude l'incrocio diretto fra i veicoli
-[ V ] ...comprende rampe, sovrappassi o sottopassi
-[ F ] ...è, di norma, regolata da semafori
-[ F ] ...un incrocio a raso fra una strada e i binari del treno
-Argomento: Passaggi a livello ed attraversamenti Tranviari
-In un passaggio a livello si possono trovare...
-[ V ] ...le luci rosse
-[ V ] ...le semibarriere
-[ V ] ...le barriere
-[ F ] ...le corsie di accelerazione
-[ F ] ...le luci gialle lampeggianti
-Il passaggio a livello è...
-[ F ] ...un passo carrabile
-[ F ] ...caratterizzato dalla presenza di un attraversamento autostradale
-[ F ] ...caratterizzato dalla presenza di un sottopassaggio
-[ F ] ...un cavalcavia ferroviario o tranviario
-In un passaggio a livello si può trovare...
-[ V ] ...la croce di S. Andrea
-[ V ] ...un dispositivo di segnalazione acustica
-In vicinanza di un passaggio a livello...
-[ V ] ...si trovano i pannelli distanziometrici
-Bisogna lasciare liberi...
-[ V ] ...i passaggi a livello e i binari del tram anche in caso di traffico intenso
-Argomento: Banchine e marciapiedi
-La banchina è...
-[ F ] ...riservata ai veicoli lenti, nelle strade in salita
-[ V ] ...parte della strada, situata oltre la linea bianca continua di margine della carreggiata
-[ V ] ...parte della strada, posta al di fuori della carreggiata
-[ F ] ...parte della carreggiata, destinata alla sosta dei veicoli
-Sulle banchine...
-[ F ] ...la sosta dei veicoli è consentita per un massimo di 5 ore
-La banchina non consente...
-[ V ] ...di norma, il transito ai veicoli
-Il marciapiede è...
-[ V ] ...una parte della strada riservata, di norma, ai pedoni
-[ V ] ...una parte della strada, rialzata o delimitata in altro modo, riservata ai pedoni
-[ F ] ...una parte della strada dove, di norma, è consentita la sosta dei ciclomotori
-[ V ] ...una parte della strada, al di fuori della carreggiata, destinata alla circolazione dei pedoni
-[ F ] ...una parte della carreggiata
-[ F ] ...una parte della strada riservata anche alle biciclette
-[ F ] ...riservato ai pedoni e ai veicoli in sosta, qualora non sia rialzato
-Il marciapiede consente...
-[ V ] ...la sosta dei veicoli solo in presenza di apposite strisce di parcheggio
-Il conducente del motociclo...
-[ F ] ...può circolare sul marciapiede se il traffico sulla carreggiata è bloccato
-Argomento: Attraversamenti pedonali e ciclabili
-L'attraversamento pedonale è...
-[ V ] ...una parte della carreggiata, in cui i veicoli devono dare la precedenza ai pedoni, che attraversano sulle apposite strisce
-[ V ] ...una parte della carreggiata destinata al transito dei pedoni che attraversano
-[ F ] ...posto al di fuori della carreggiata ed è destinato al transito dei pedoni
-[ F ] ...una parte della carreggiata vietata al transito dei veicoli
-[ F ] ...una parte della strada, separata dalla carreggiata mediante una striscia gialla
-[ V ] ...una parte della carreggiata sulla quale è vietata la sosta dei veicoli
-[ V ] ...una parte della carreggiata sulla quale è vietata la fermata dei veicoli
-[ F ] ...una parte della carreggiata in cui è consentita la fermata ma non la sosta dei veicoli
-L'attraversamento pedonale non fa parte...
-[ F ] ...della carreggiata
-L'uso corretto della strada comporta che...
-[ V ] ...si dia la precedenza ai pedoni che attraversano sugli attraversamenti pedonali
-[ F ] ...ci si arresti sempre ai passaggi pedonali ripartendo solo se non sopraggiungono pedoni
-L'attraversamento pedonale viene segnalato...
-[ V ] ...con strisce bianche parallele
-Bisogna lasciare liberi...
-[ V ] ...gli attraversamenti pedonali e quelli ciclabili in caso di formazione di code di veicoli
-Argomento: Passo carrabile, Piazzola di Sosta, Parcheggio
-Il passo carrabile è...
-[ F ] ...una strada riservata ai carri trainati da animali
-[ F ] ...una strada riservata agli autocarri
-[ F ] ...un segnale che impone la circolazione rotatoria su una piazza
-[ F ] ...un salvagente circolare per i pedoni
-[ F ] ...un parcheggio scambiatore
-[ V ] ...una zona per l’accesso dei veicoli alle proprietà laterali alla strada
-Il passo carrabile consente...
-[ V ] ...ai veicoli di accedere alle proprietà private laterali alla strada (garage, cortili, ecc.)
-Il passo carrabile permette...
-[ V ] ...ai veicoli che circolano su una strada pubblica di accedere ad un'area laterale adibita alla sosta
-Il passo carrabile deve essere...
-[ V ] ...corredato da apposito segnale, che riporti l'ente e il numero di autorizzazione
-In corrispondenza del passo carrabile...
-[ F ] ...è consentita la sosta
-[ V ] ...è consentita la fermata
-Argomento: Isola di traffico e Salvagente
-L'isola di traffico è...
-[ F ] ...una zona destinata al parcheggio dei veicoli
-[ F ] ...posta al di fuori della strada
-[ F ] ...una piazzola di sosta per i veicoli
-[ F ] ...un'area pedonale urbana
-[ F ] ...corrisponde, in genere, al centro storico della città
-[ F ] ...una piazzola per effettuare l'inversione di marcia
-[ F ] ...una parte della strada sulla quale è consentito il transito dei ciclomotori
-[ F ] ...la parte della città con maggiore traffico
-[ V ] ...una parte della strada sulla quale è vietato il transito dei veicoli
-[ V ] ...una parte della strada sulla quale è vietato il transito dei motocicli
-L'isola di traffico serve...
-[ F ] ...per la fermata dei veicoli
-[ F ] ...a separare la carreggiata dalla banchina
-[ F ] ...per il transito dei pedoni
-[ V ] ...a facilitare l'incanalamento dei veicoli verso varie direzioni
-L'isola di traffico può essere...
-[ F ] ...percorsa solo dai taxi e dagli autobus urbani
-[ V ] ...a raso o in rilievo (rialzata)
-L'isola di traffico viene evidenziata...
-[ V ] ...mediante zebrature di colore bianco
-L'isola di traffico a raso...
-[ V ] ...è costituita da zebrature di colore bianco
-L'isola di traffico facilita...
-[ F ] ...la salita e la discesa di passeggeri da tram, filobus e autobus
-L'isola di traffico, se rialzata...
-[ V ] ...è preceduta da zebrature di colore bianco
-L'isola di traffico è delimitata...
-[ V ] ...da strisce bianche continue
-Il salvagente è...
-[ F ] ...una persona preposta al primo soccorso
-[ F ] ...un itinerario ciclopedonale
-Il salvagente facilita...
-[ V ] ...la salita e la discesa dei passeggeri da tram, filobus o autobus
-Il salvagente, posto in corrispondenza...
-[ V ] ...di attraversamenti pedonali, serve anche al riparo o alla sosta dei pedoni che attraversano la strada
-Il salvagente può essere segnalato...
-[ V ] ...da colonnine luminose a luce gialla fissa
-Il salvagente serve a...
-[ F ] ...incanalare i veicoli in varie direzioni
-[ F ] ...dividere i sensi di marcia in una strada a doppio senso di circolazione
-Argomento: Zona a traffico limitato e Area Pedonale
-Una zona a traffico limitato è...
-[ F ] ...un'area nella quale è consentito solo il transito di ciclomotori e biciclette
-[ F ] ...un'area vietata al transito dei pedoni durante le ore notturne
-[ V ] ...delimitata da appositi segnali stradali di inizio e di fine
-[ F ] ...un'area sempre vietata al transito dei veicoli a motore
-[ V ] ...un'area nella quale può essere limitata la circolazione solo a particolari categorie di utenti
-[ V ] ...un'area nella quale può essere limitata la circolazione solo di particolari categorie di veicoli
-[ V ] ...un'area in cui può essere limitata la circolazione dei veicoli solo in alcune ore
-In una zona a traffico limitato...
-[ V ] ...possono circolare solo i veicoli autorizzati
-[ F ] ...non possono entrare più di un certo numero di veicoli
-Nelle aree pedonali...
-[ F ] ...i ciclomotori possono transitare solo di giorno
-[ V ] ...possono transitare i pedoni
-[ F ] ...possono transitare i quadricicli a motore, purché non superino la velocità di 50 km/h
-[ F ] ...possono transitare i trattori stradali, con velocità non superiore a 30 km/h
-[ F ] ...possono transitare tutti gli autoveicoli, ma con prudenza
-[ F ] ...possono transitare tutti i motocicli, purché diano la precedenza ai pedoni
-[ V ] ...possono transitare i veicoli al servizio di persone diversamente abili
-[ V ] ...possono transitare le biciclette
-[ V ] ...possono transitare gli autoveicoli dei vigili del fuoco, con luce lampeggiante blu e sirena in funzione
-[ V ] ...possono transitare i veicoli della polizia, con sirena e luce lampeggiante blu in funzione
-[ V ] ...possono transitare i veicoli ad emissione zero (elettrici), se espressamente consentito
-Lezione: 01.2 Doveri del conducente
-Argomento: Divieti generali 
-Spostare la segnaletica...
-[ V ] ...stradale può comportare pericolo grave per gli altri utenti della strada
-È vietato...
-[ V ] ...spostare o imbrattare la segnaletica stradale
-[ V ] ...rimuovere la segnaletica stradale
-[ V ] ... danneggiare le opere e gli impianti stradali
-[ V ] ...sporcare la carreggiata depositando rifiuti
-[ V ] ...gettare oggetti e rifiuti dai veicoli in movimento
-[ F ] ...parcheggiare nelle zone residenziali
-[ V ] ...lanciare dal finestrino mozziconi di sigaretta accesi
-[ V ] ...spargere fango o detriti sulle strade con le ruote sporche dei veicoli
-[ V ] ...immettersi sulle strade con le ruote del veicolo sporche di fango
-E' consentito spostare...
-[ F ] ...la segnaletica stradale, se si tratta delle barriere di delimitazione o dei coni stradali
-[ F ] ...la segnaletica stradale, se non si tratta di segnali di pericolo
-[ F ] ...la segnaletica stradale, dopo aver avvisato gli organi di polizia
-[ F ] ...i segnali stradali verticali temporanei per parcheggiare il veicolo
-Il conducente può...
-[ F ] ...lanciare oggetti dal finestrino sulla banchina
-[ F ] ...superare i veicoli in coda accelerando bruscamente e cambiando ripetutamente corsia
-E' consentito lanciare...
-[ F ] ...la carta dal finestrino
-Su tutte le strade...
-[ F ] ...è vietato il transito dei veicoli che superano 10 m di lunghezza
-[ F ] ...è vietato esercitarsi alla guida
-[ F ] ...sono vietati gli avvisatori acustici (clacson, trombe)
-Gettare mozziconi...
-[ V ] ...accesi dai finestrini in prossimità di boschi o aree verdi potrebbe causare incendi
-[ V ] ...di sigaretta accesi dai finestrini è molto pericoloso soprattutto se sopraggiungono veicoli a due ruote
-Sulle strade pubbliche sono consentite...
-[ F ] ...le gare di velocità, anche se non autorizzate, dalle ore 23.00 alle ore 6.00
-[ F ] ...le gare di velocità, anche se non autorizzate, tra motocicli e non tra autoveicoli
-Sono consentite le gare di velocità...
-[ F ] ...anche se non autorizzate, purché partecipino solo due autovetture
-Le competizioni sportive...
-[ F ] ...con veicoli su aree pubbliche sono consentite senza autorizzazione
-È punito con la reclusione...
-[ V ] ...il conducente che gareggia in velocità su strade pubbliche
-[ V ] ...chi scommette su veicoli che partecipano a gare di velocità non autorizzate su strade pubbliche
-[ V ] ...il conducente che partecipa a gare di velocità non autorizzate su aree pubbliche
-Sulle strade è vietato gareggiare...
-[ V ] ...in velocità
-Il conducente che si accorge...
-[ V ] ...che il suo veicolo perde olio deve compiere tutte le azioni necessarie per evitare pericoli per altri utenti
-[ V ] ...che il suo veicolo ha forti perdite di olio o carburante, deve immediatamente avvisare l’ente proprietario della strada o gli organi di polizia
-Uscendo da un sentiero fangoso...
-[ V ] ...o da un cantiere, bisogna assicurarsi che durante la marcia non cada terriccio che possa sporcare la strada
-Per evitare di sporcare...
-[ V ] ...la carreggiata, bisogna pulire le ruote del veicolo, prima di uscire da un sentiero fangoso
-Se, uscendo da un sentiero fangoso...
-[ V ] ...si sporca notevolmente la strada, si può incorrere in una sanzione amministrativa
-Su una strada ricoperta...
-[ F ] ...da brecciolino il conducente può circolare a velocità sostenuta
-Alla guida di un veicolo...
-[ V ] ...il conducente deve procedere a bassa velocità sopra le pozzanghere
-Argomento: Convivenza Civile
-Entrando in un centro abitato...
-[ V ] ...bisogna tenere conto che può cambiare spesso la precedenza agli incroci
-[ V ] ...bisogna continuare a mantenere la concentrazione alla guida anche se potrebbero aumentare i motivi per distrarsi
-[ F ] ...bisogna considerare che è possibile sostare in corrispondenza di incroci non regolati
-[ V ] ...bisogna tenere conto che il flusso della circolazione viene spesso intralciato o interrotto da veicoli che sono fermi, che partono o che cambiano direzione
-Entrati in un centro abitato...
-[ V ] ...bisogna tenere conto che gli altri utenti della strada (quali pedoni e ciclisti) si mescolano maggiormente con il traffico motorizzato
-Il conducente di un veicolo...
-[ F ] ...può approfittare della potenza del proprio veicolo per non dare la precedenza a chi spetta
-[ F ] ...di grandi dimensioni ha, di norma, la precedenza sul conducente di un veicolo più piccolo
-[ F ] ...può fare a meno di usare la massima prudenza quando si avvicina ad un incrocio in cui ha il diritto di precedenza
-[ V ] ...oltre a rispettare le norme specifiche della circolazione, deve tenere un rapporto corretto e tollerante verso gli altri utenti della strada
-[ V ] ...deve essere paziente e tollerante anche in caso di rallentamento della circolazione
-[ V ] ...deve tutelare la propria e l'altrui sicurezza
-[ V ] ...deve cercare di prevedere il comportamento degli altri utenti
-[ V ] ...non deve fare sempre affidamento sul comportamento degli altri, che può non essere corretto
-[ V ] ...diverso dai taxi non può sostare nei posteggi riservati ai taxi
-[ F ] ...diverso dai taxi può sostare nei posteggi riservati ai taxi dalle ore 20.00 alle ore 8.00
-Il conducente deve...
-[ F ] ...dare segni di impazienza, se il veicolo che sta davanti procede troppo lentamente
-[ F ] ...concentrarsi prevalentemente sul tratto di strada non superiore a tre metri antistante il suo veicolo
-In un centro abitato...
-[ F ] ...è sempre consentita la marcia per file parallele
-[ V ] ...bisogna essere più attenti, prudenti e tolleranti, a causa del maggior numero di utenti che interagiscono nell'ambiente urbano
-[ F ] ...bisogna considerare che i pedoni e i diversamente abili devono sempre dare la precedenza ai veicoli a motore
-Quando si viaggia in fila...
-[ V ] ...con altri veicoli, non bisogna limitarsi a osservare solamente il veicolo che precede, ma occorre porre attenzione anche in lontananza, per controllare la situazione del traffico
-[ V ] ...con altri veicoli, bisogna mantenere ugualmente la distanza di sicurezza
-[ V ] ...con altri veicoli, è opportuno non avvicinarsi troppo al veicolo che precede
-[ F ] ...con altri veicoli è consentito distrarsi se si è a bassa velocità
-[ F ] ...con altri veicoli, è opportuno tenere sempre accese le luci di emergenza
-[ F ] ...con altri veicoli, è opportuno spostarsi al centro della carreggiata, per controllare la situazione del traffico
-[ F ] ...con altri veicoli, è opportuno spostarsi il più possibile a sinistra, per creare una corsia libera a destra
-Anche in condizioni di scarsa visibilità...
-[ F ] ...quando si viaggia dietro ad un veicolo che solleva polvere, conviene sorpassarlo subito
-Un incidente...
-[ V ] ...anche a bassa velocità, potrebbe creare gravi problemi fisici a pedoni, ciclisti e motociclisti, se coinvolti
-[ F ] ...a bassa velocità non crea problemi di incolumità ai conducenti coinvolti
-Lezione: 01.3 Definizioni e Classificazione dei Veicoli
-Argomento: Ciclomotori
-I ciclomotori...
-[ V ] ...sono soggetti a revisione dopo quattro anni dalla prima immatricolazione, successivamente ogni due anni
-[ V ] ...possono avere due o tre ruote
-[ F ] ...non sono soggetti a revisione periodica
-[ F ] ...non hanno più di due ruote
-[ F ] ...possono circolare alla velocità di 60 km/h fuori dai centri urbani
-[ F ] ...per essere definiti tali, devono essere muniti di cambio manuale
-[ V ] ...a due ruote non possono avere un motore termico di cilindrata superiore a 50 cm3
-[ V ] ...non rientrano nella categoria dei motocicli
-I veicoli a due ruote...
-[ V ] ...con motore termico fino a 50 cm3 di cilindrata e velocità massima di 45 km/h sono ciclomotori
-Non tutti i veicoli a motore...
-[ V ] ...a due ruote vengono classificati ciclomotori
-Si definiscono ciclomotori tutti i veicoli...
-[ F ] ...a due ruote di cilindrata superiore a 50 cm3
-Le biciclette con pedalata assistita...
-[ F ] ...dotate di motore elettrico ausiliario di potenza massima fino a 0,25 kW, sono definite ciclomotori
-E' consentito...
-[ F ] ...aumentare la cilindrata dei quadricicli leggeri purché non si aumenti la velocità
-[ F ] ...sostituire il motore del quadriciclo leggero per aumentare la velocità massima oltre i 45 km/h
-[ F ] ...sostituire il dispositivo di scarico dei quadricicli leggeri per aumentare la velocità massima, purché non si aumenti la cilindrata del motore
-I quadricicli leggeri... 
-[ V ] ...alimentati a benzina hanno cilindrata del motore inferiore o pari a 50 cm3
-[ V ] ...ai fini della circolazione, sono assimilati ai ciclomotori 
-La guida dei quadricicli non leggeri...
-[ F ] ...è consentita già al compimento del quattordicesimo anno di età
-Ai fini della circolazione i quadricicli leggeri sono assimilati...
-[ F ] ...ai motocicli
-Argomento: Motoveicoli
-I motocicli...
-[ V ] ...sono soggetti a revisione dopo quattro anni dalla prima immatricolazione, successivamente ogni due anni
-[ V ] ...possono essere dotati di cambio automatico
-[ V ] ...hanno cilindrata superiore a 50 cm3
-[ V ] ...sono veicoli a due ruote
-[ F ] ...hanno motore di cilindrata fino a 50 cm3 e sviluppano una velocità fino a 45 km/h
-[ F ] ...sono veicoli a motore con più di due ruote
-Tutti i veicoli a motore con tre ruote...
-[ F ] ...sono dei motocicli
-Si definiscono motocicli solo i veicoli...
-[ F ] ...a due ruote di cilindrata fino a 125 cm3
-Il motociclo è...
-[ F ] ...un qualunque veicolo a due ruote
-I tricicli a motore sono...
-[ F ] ...veicoli a motore che possono essere condotti senza patente
-[ V ] ...soggetti a revisione dopo quattro anni dalla prima immatricolazione, successivamente ogni due anni
-[ F ] ...non soggetti a revisione periodica
-[ V ] ...veicoli a motore a tre ruote simmetriche
-[ F ] ...costituiti da un motociclo e un sidecar
-[ V ] ...veicoli a motore aventi una velocità massima per costruzione superiore a 45 km/h
-[ V ] ...veicoli con motore di cilindrata superiore a 50 cm3
-[ F ] ...veicoli con motore di cilindrata inferiore a 50 cm3 e aventi velocità massima per costruzione fino a 45 km/h
-I quadricicli...
-[ V ] ...sono veicoli a motore a quattro ruote
-[ V ] ...sono soggetti a revisione periodica
-[ F ] ...non sono soggetti a revisione periodica
-[ F ] ...non leggeri a manubrio e con carrozzeria aperta possono essere condotti senza casco
-[ F ] ...diversi da quelli leggeri possono essere guidati senza patente
-[ F ] ...non leggeri, ai fini della circolazione, sono equiparati ai ciclomotori
-[ V ] ...non sono autoveicoli
-La potenza dei quadricicli non leggeri è sempre...
-[ V ] ...inferiore o uguale a 15 kW
-Il triciclo a motore è...
-[ F ] ...un autoveicolo
-Argomento: Autoveicoli
-Gli autoveicoli sono...
-[ F ] ...tutti i veicoli con almeno due ruote
-[ F ] ...tutti i veicoli con almeno quattro ruote, compresi quelli senza motore
-[ V ] ...veicoli a motore con almeno quattro ruote, esclusi i quadricicli
-[ F ] ...tutti i veicoli a motore con quattro o più ruote, compresi i quadricicli
-L'autoveicolo è...
-[ F ] ...un qualunque veicolo adibito al trasporto di merce
-[ F ] ...un qualunque veicolo a motore
-[ V ] ...un veicolo a motore con non meno di quattro ruote, eccetto i quadricicli
-Le autovetture...
-[ V ] ...possono avere motore elettrico 
-[ V ] ...sono soggette a revisione periodica
-[ F ] ...sono soggette a revisione ogni cinque anni 
-[ F ] ...non possono trainare carrelli-appendice o rimorchi
-L'autovettura...
-[ F ] ...è un veicolo con dieci posti in totale, compreso il conducente
-[ V ] ...è un veicolo a motore con quattro ruote, destinato al trasporto di massimo nove persone, compreso il conducente 
-[ V ] ...fa parte degli autoveicoli 
-[ F ] ...può avere al massimo, cinque posti 
-[ V ] ...non può avere più di nove posti, compreso il conducente
-Vengono definite autovetture tutti i veicoli...
-[ F ] ...con motore anteriore
-Si definiscono autovetture tutti i veicoli...
-[ F ] ...a motore che hanno la trazione posteriore
-Si definisce autovettura il veicolo...
-[ F ] ...blindato e appositamente attrezzato per il trasporto di valori
-Le autocaravan (camper) sono...
-[ F ] ...veicoli destinati ai lavori agricoli
-[ V ] ...veicoli aventi una speciale carrozzeria per essere adibiti al trasporto ed all'alloggio al massimo del numero di persone indicato nella carta di circolazione
-[ V ] ...veicoli aventi una speciale carrozzeria per essere adibiti al trasporto ed all'alloggio di persone
-[ F ] ...veicoli destinati alla costruzione e alla manutenzione di opere stradali
-[ V ] ...veicoli attrezzati permanentemente per essere adibiti al trasporto ed all'alloggio di persone
-[ F ] ...rimorchi
-[ V ] ...soggette a revisione periodica
-[ F ] ...soggette a revisione ogni cinque anni
-Sulle autocaravan (camper) è possibile viaggiare...
-[ F ] ...in piedi, solo per brevi tratti
-L'autobus...
-[ V ] ...viene classificato autoveicolo 
-[ V ] ...non è un'autovettura 
-L'autocarro è...
-[ V ] ...un autoveicolo
-[ F ] ...un'autovettura
-Argomento: Macchine agricole e Macchine Operatrici
-Sulle macchine agricole e sui loro rimorchi è consentito...
-[ F ] ...il trasporto di persone in piedi
-Le macchine agricole...
-[ V ] ...possono essere a ruote o a cingoli
-[ F ] ...possono trasportare fino a quattro passeggeri
-[ V ] ...possono essere semoventi o trainate
-[ V ] ...possono circolare su strada per il proprio trasferimento se immatricolate
-[ V ] ...a ruote o a cingoli possono circolare su strada per il trasporto di prodotti agricoli per conto delle aziende agricole e forestali
-Con la patente di categoria A si possono guidare...
-[ F ] ...tutte le macchine agricole
-Le macchine operatrici...
-[ V ] ...possono essere veicoli sgombraneve
-[ F ] ...possono circolare ad una velocità superiore a 50 km/h
-[ V ] ...possono essere semoventi o trainate
-[ V ] ...possono essere dotate di speciali attrezzature per l'esecuzione di operazioni agricole
-[ F ] ...semoventi possono trasportare fino a quattro passeggeri
-[ F ] ...a cingoli possono circolare ad una velocità superiore a 45 km/h
-Per condurre macchine operatrici è necessario essere titolari della patente di guida...
-[ F ] ...della categoria A
-Con la patente di categoria B si possono guidare...
-[ F ] ...le macchine operatrici eccezionali
-Argomento: Rimorchi e semirimorchi
-I rimorchi leggeri sono...
-[ F ] ...quelli di massa massima a pieno carico fino a 500 kg
-[ V ] ...quelli di massa massima a pieno carico fino a 750 kg
-I rimorchi sono...
-[ F ] ...muniti di silenziatore
-I rimorchi o i semirimorchi sono...
-[ V ] ...veicoli privi di motore, destinati ad essere trainati
-I semirimorchi sono...
-[ F ] ...rimorchi privi di impianto frenante
-I caravan (roulottes) sono...
-[ F ] ...rimorchi destinati ai lavori agricoli
-[ V ] ...rimorchi attrezzati per essere adibiti ad alloggio
-[ V ] ...muniti di targa
-[ F ] ...rimorchi destinati esclusivamente al trasporto di attrezzature turistiche e sportive
-[ V ] ...utilizzabili come alloggio solo con veicolo fermo
-E' possibile alloggiare...
-[ F ] ...nei caravan (roulottes) durante la circolazione
-Il caravan non è...
-[ F ] ...un rimorchio
-L'autocaravan non è...
-[ V ] ...un rimorchio
-L'autosnodato non è classificato...
-[ V ] ...rimorchio
-Lezione: 01.4 Utenti deboli
-Argomento: Anziani, ciechi e sordociechi
-Bisogna usare maggiore prudenza nei confronti...
-[ V ] ...delle persone anziane
-[ V ] ...dei bambini che attraversano la strada
-[ V ] ...delle persone diversamente abili
-[ V ] ...delle persone in bicicletta e di quelle con scarsa capacità di movimento
-[ V ] ...dei conducenti che dimostrano una guida incerta
-[ V ] ...dei conducenti di veicoli adattati per persone diversamente abili
-[ F ] ...dei pedoni muniti di bastone bianco, ma non di quelli con bastone bianco-rosso
-[ F ] ...dei conducenti di autoveicoli elettrici
-[ F ] ...dei conducenti di taxi
-[ F ] ...dei conducenti di tricicli a motore
-[ V ] ...delle donne in stato di gravidanza che attraversano la strada
-[ V ] ...dei pedoni che spingono una carrozzina per bambini
-Bisogna usare particolare prudenza nei confronti dei conducenti che hanno conseguito la patente di guida...
-[ F ] ...in uno Stato estero
-Quando le persone anziane attraversano la carreggiata bisogna...
-[ F ] ...lampeggiare e suonare il clacson per farle attraversare rapidamente
-[ V ] ...tenere presente che potrebbero fermarsi improvvisamente al centro della strada
-[ V ] ...tenere presente che potrebbero non fare adeguata attenzione ai veicoli
-[ F ] ...dare la precedenza solo a coloro che attraversano da sinistra a destra
-[ V ] ...tenere presente che, data la loro età, non reagiscono prontamente alle situazioni di pericolo
-[ V ] ...tenere presente che potrebbero non guardare né a destra, né a sinistra
-[ V ] ...non avvicinarsi troppo con il veicolo, per evitare che si sentano minacciati e reagiscano con movimenti pericolosi
-[ F ] ...tenere presente che, di solito, attraversano rapidamente e con prudenza
-[ F ] ...tenere presente che hanno i riflessi più rapidi e quindi attraversano con più accortezza
-[ F ] ...tenere presente che, avendo più esperienza e un campo visivo maggiore, intuiscono meglio le situazioni di pericolo
-Le persone anziane che attraversano la carreggiata sono...
-[ V ] ...esposte a maggiori pericoli, perché le loro capacità visive e uditive non sono più eccellenti
-[ V ] ...esposte a maggiori pericoli, perché potrebbero valutare male la velocità dei veicoli che sopraggiungono
-Se un pedone con bastone bianco attraversa la strada fuori dalle strisce pedonali...
-[ F ] ...bisogna suonare il clacson per sollecitarlo ad attraversare rapidamente
-Il conducente deve...
-[ V ] ...fermarsi quando un pedone non vedente con il bastone bianco si accinge ad attraversare la strada, evitando di frenare bruscamente per non spaventarlo
-[ V ] ...fermarsi e facilitare l'attraversamento al pedone non vedente con il bastone bianco che attraversa la strada fuori dalle strisce pedonali
-[ V ] ...fermarsi e dare la precedenza al pedone non vedente con il bastone bianco che si accinge ad attraversare la strada fuori dalle strisce pedonali
-[ V ] ...fermarsi per concedere la precedenza al pedone sordocieco che, con il bastone bianco-rosso, attraversa la strada fuori dalle strisce pedonali
-[ V ] ...dare la precedenza al pedone non vedente con il bastone bianco che attraversa la strada fuori dalle strisce pedonali, anche se non è accompagnato da un cane guida
-[ V ] ...dare la precedenza al pedone con il bastone bianco o bianco-rosso che attraversa la strada, anche se è fuori dalle strisce di un attraversamento pedonale
-[ F ] ...accelerare per sgombrare rapidamente la carreggiata quando un pedone non vedente con il bastone bianco attraversa la strada senza cane guida
-[ F ] ...passare per primo, in quanto ha la precedenza, quando un pedone non vedente con il bastone bianco attraversa la strada fuori dalle strisce pedonali
-[ F ] ...prevedere che un pedone non vedente con il bastone bianco che attraversa la strada fuori dalle strisce pedonali camminerà rapidamente e senza incertezza
-[ F ] ...dare la precedenza a un pedone non vedente che attraversa la strada fuori dalle strisce pedonali, solo se munito di bastone bianco-rosso
-[ V ] ...consentire ad una donna incinta di attraversare la strada senza metterle fretta
-Il conducente, quando un pedone non vedente con il bastone bianco attraversa la strada fuori dalle strisce pedonali...
-[ F ] ...deve dargli la precedenza solo se l'attraversamento pedonale dista oltre 100 metri
-In vicinanza di un attraversamento pedonale,...
-[ F ] ...il conducente deve considerare che un pedone munito di bastone bianco ha più esperienza su come attraversare la carreggiata
-[ F ] ...il conducente deve arrestarsi se il pedone che attraversa è munito di bastone bianco-rosso; deve solo rallentare se, invece, è munito di bastone bianco
-[ V ] ...il conducente deve considerare che le reazioni dei bambini che attraversano sono imprevedibili e, quindi, possono creare pericolo
-[ V ] ...il conducente deve considerare che i bambini potrebbero avanzare sulle strisce, per poi tornare indietro improvvisamente, senza motivo apparente
-[ V ] ...il conducente deve considerare che i pedoni, in special modo i bambini, possono sbucare all'improvviso tra i veicoli parcheggiati
-[ V ] ...il conducente deve considerare che i veicoli parcheggiati in prossimità delle strisce impediscono la visuale dei pedoni
-[ F ] ...il conducente deve aspettarsi dai bambini una reazione rapida e un comportamento corretto
-[ V ] ...il conducente deve considerare che le persone anziane solitamente attraversano lentamente e con difficoltà
-[ V ] ...il conducente deve considerare che il pedone potrebbe fermarsi improvvisamente sulle strisce dell'attraversamento pedonale
-[ F ] ...il conducente deve accelerare quel tanto che basta per passare davanti al pedone che attraversa
-[ V ] ...il conducente deve considerare che il pedone, nell'attraversare la strada, può diventare insicuro e ritornare improvvisamente indietro
-[ F ] ...il conducente deve considerare che i pedoni devono attraversare la strada affiancati, in modo da impiegare meno tempo
-[ F ] ...il conducente deve considerare che se il pedone si è fermato in mezzo alle strisce dell'attraversamento significa che ha rinunciato al suo diritto di passare
-[ F ] ...i pedoni devono fare un cenno con la mano prima di iniziare l'attraversamento
-Argomento: Bambini e donne incinte
-Quando vi sono bambini fermi al semaforo...
-[ V ] ...bisogna usare prudenza perché può accadere che si spingano a vicenda, finendo sulla carreggiata
-[ V ] ...bisogna usare prudenza perché potrebbero scendere dal marciapiede, invadendo la carreggiata, quando ancora per loro il semaforo è disposto al rosso
-[ V ] ...bisogna usare prudenza in quanto potrebbero attraversare improvvisamente la strada appena la luce del semaforo veicolare passa dal verde al giallo
-[ V ] ...bisogna usare prudenza in quanto potrebbero attraversare velocemente la strada anche con il rosso, ritenendo che duri troppo 
-[ F ] ...bisogna tenere presente che possono attraversare la strada solo se accompagnati da un adulto
-[ F ] ...si può essere certi che non attraverseranno la strada se il semaforo è a luce gialla lampeggiante
-[ F ] ...si può essere certi che attraverseranno la strada solo quando il semaforo pedonale abbia la luce verde accesa
-I bambini, al semaforo, possono attraversare la strada...
-[ F ] ...solo dopo aver ricevuto un gesto di consenso da parte degli automobilisti
-Prima di impegnare un incrocio, dopo che è scattata la luce verde del semaforo...
-[ V ] ...il conducente deve attendere che i pedoni abbiano finito di attraversare la strada
-Alla guida di un veicolo, in vicinanza di una piazzola di fermata di autobus che trasporta/per scolari,...
-[ V ] …occorre fare attenzione ai bambini che potrebbero aver iniziato ad attraversare la carreggiata nascosti dall'autobus 
-[ V ] ...occorre essere prudenti e tenere conto dei comportamenti imprevedibili dei bambini
-[ V ] ...occorre fare attenzione ai bambini, che potrebbero attraversare di corsa la strada per salire sullo scuolabus
-[ V ] ...occorre prepararsi a frenare, nel caso in cui dei bambini attraversino improvvisamente la strada
-[ F ] ...non è necessario rallentare se lo scuolabus è fermo
-[ F ] ...occorre suonare per invitare i bambini che attraversano sulle strisce a dare la precedenza
-[ F ] ...non si deve rallentare, per evitare di ostacolare la circolazione degli altri veicoli
-[ F ] ...si deve rallentare solo se vi sono bambini che attraversano
-[ V ] ...bisogna rallentare particolarmente se vi è lo scuolabus
-[ F ] ...occorre fare attenzione allo scuolabus, che dopo la fermata farà sicuramente retromarcia
-[ F ] ...occorre passare per primi, avendo sempre la precedenza sui bambini che attraversano la strada
-[ F ] ...non si può proseguire nella marcia se le portiere dello scuolabus sono ancora aperte
-In vicinanza di una piazzola di fermata di autobus per scolari...
-[ V ] ...può accadere che i bambini scendano dall'autobus senza fare attenzione ai veicoli che sopraggiungono
-Quando una donna in stato di gravidanza attraversa la carreggiata...
-[ F ] ...bisogna darle la precedenza solo se attraversa da sinistra a destra
-[ F ] ...bisogna tenere presente che ha il passo più rapido e quindi attraversa velocemente 
-[ V ] ...non bisogna avvicinarsi troppo con il veicolo, per evitare di spaventarla
-E' consentito posteggiare un veicolo davanti agli scivoli del marciapiede...
-[ F ] ...solo dalle ore 22.00 alle ore 8.00
-Quando un pedone che spinge la/una carrozzina per bambini attraversa la carreggiata...
-[ F ] ...bisogna dargli la precedenza solo se attraversa da sinistra a destra
-[ F ] ...bisogna tenere presente che, di solito, attraversa rapidamente
-Quando si parcheggia un veicolo è vietato ostruire...
-[ V ] ...eventuali scivoli del marciapiede per non impedire il passaggio di pedoni che spingono una carrozzina per bambini
-E' consentito lasciare il veicolo in sosta sul marciapiede...
-[ F ] ...senza lasciare spazio ai pedoni che spingono una carrozzina per bambini
-Argomento: Pedoni e ciclisti
-Il conducente, di notte...
-[ F ] ...non deve dare la precedenza ai pedoni che attraversano sulle strisce pedonali
-Quando la carreggiata è occupata da ciclisti o pedoni...
-[ V ] ...per sorpassarli è prudente mantenere un'adeguata distanza di sicurezza laterale
-[ V ] ...non è prudente sorpassarli se non si può rispettare una distanza laterale sufficiente
-[ F ] ...si devono sorpassare senza superare la velocità di 30 km/h
-E' vietato sorpassare...
-[ F ] ...ciclisti o pedoni che occupano la carreggiata
-Poiché la marcia dei ciclisti a volte avviene con leggeri sbandamenti...
-[ V ] ...il conducente di un veicolo deve tener conto di tale particolarità, in caso di sorpasso
-Il conducente che intende sorpassare ciclisti o pedoni che occupano la carreggiata...
-[ V ] ...deve usare molta prudenza
-[ F ] ...deve mantenere una distanza laterale di almeno 2 metri
-Quando la carreggiata extraurbana è occupata da ciclisti o pedoni...
-[ V ] ...è consigliabile suonare il clacson prima di sorpassarli
-Il conducente, in vicinanza di un posteggio riservato ai taxi...
-[ V ] ...deve fare attenzione ai pedoni, che possono attraversare improvvisamente la strada senza le dovute precauzioni
-[ V ] ...deve fare attenzione ai pedoni che salgono o scendono dal taxi
-[ V ] ...deve rallentare ed eventualmente fermarsi se vi sono pedoni che attraversano la strada, senza guardare
-[ F ] ...deve dare la precedenza ai taxi in partenza, qualora s'immettano dal lato sinistro della carreggiata
-[ F ] ...deve dare la precedenza ai taxi che s'immettono sulla strada
-Lezione: 02.1 Segnali di Pericolo
-Argomento: Strada deformata (001)
-Il segnale raffigurato (001) è un segnale di...
-[ V ] ...pericolo
-[ F ] ...prescrizione
-Il segnale raffigurato (001) preannuncia...
-[ F ] ...più curve consecutive
-[ F ] ...una discesa pericolosa
-[ V ] ...un tratto di strada deformata
-[ V ] ...un tratto di strada con pavimentazione irregolare
-[ V ] ...un tratto di strada dissestata
-[ V ] ...una strada in cattivo stato
-[ F ] ...una serie di dossi
-[ F ] ...una forte variazione di pendenza della strada
-[ F ] ...un tratto di strada a visibilità limitata
-[ F ] ...un dosso
-[ F ] ...una doppia curva
-Il segnale raffigurato (001)...
-[ V ] ...si trova, in genere, 150 metri prima di un tratto di strada con fondo irregolare
-[ V ] ...può essere associato con un segnale di limite massimo di velocità
-[ V ] …se a fondo giallo è usato in presenza di cantieri stradali
-[ F ] ...indica un tratto di strada deformata lungo 320 metri
-[ V ] ...indica un tratto di strada deformata lungo 380 metri
-In presenza del segnale raffigurato (001)...
-[ V ] ...è necessario tenere saldamente il volante, per controllare possibili sbandamenti
-[ V ] ...è importante prevedere eventuali sbandamenti dei veicoli provenienti dal senso opposto
-[ F ] ...è necessario fare attenzione al restringimento della carreggiata
-[ F ] ...è obbligatorio circolare al centro della carreggiata
-[ V ] ...è necessario circolare a velocità moderata se si traina un rimorchio
-Argomento: Dosso (002)
-Il segnale raffigurato (002) è un segnale di...
-[ V ] ...è un segnale di pericolo
-[ F ] ...è un segnale di obbligo
-[ F ] ...è un segnale di precedenza 
-Il segnale raffigurato (002) preannuncia...
-[ F ] ...l'ingresso in una galleria
-[ V ] ...un dosso
-[ V ] ...una salita, seguita da una discesa
-[ V ] ...una variazione di pendenza della strada con limitata visibilità
-[ F ] ...un tratto di strada deformata
-[ F ] ...un tratto di strada con pavimentazione irregolare
-[ F ] ...un ponte
-[ F ] ...una cunetta
-[ F ] ...un tratto di strada in cattivo stato
-[ V ] ...un tratto di strada pericoloso per limitata visibilità
-[ F ] ...lavori in corso
-Il segnale raffigurato (002)...
-[ V ] ...è posto, di norma, 150 metri prima di un dosso
-[ F ] ...vieta il transito degli autobus
-[ V ] ...può presegnalare dossi artificiali
-In presenza del segnale raffigurato (002)...
-[ V ] ...bisogna considerare che la visibilità è limitata
-[ V ] ...è necessario moderare la velocità in relazione alla visibilità
-[ V ] ...è vietato il sorpasso sul tratto in salita, se la strada è a doppio senso di circolazione con due sole corsie
-[ F ] ...è vietato il sorpasso nel tratto in discesa
-[ V ] ...sono vietate la sosta e la fermata sia sul tratto in salita che su quello in discesa
-[ F ] ...è possibile effettuare l'inversione di marcia nel tratto in discesa
-[ V ] ...è vietata l'inversione di marcia
-Argomento: Cunetta (003)
-Il segnale raffigurato (003) preannuncia...
-[ F ] ...un dosso
-[ V ] ...un tratto di strada pericoloso a causa di una cunetta
-[ V ] ...una cunetta
-[ F ] …un tratto di strada in cattivo stato
-[ F ] ...un tratto di strada con pavimentazione irregolare
-[ V ] ...un tratto di strada che potrebbe allagarsi in caso di forti piogge
-[ F ] ...una banchina cedevole
-[ F ] ...un restringimento della carreggiata
-[ F ] ...una strada deformata
-Il segnale raffigurato (003)...
-[ V ] ...è un segnale di pericolo
-[ V ] ...si trova prima di un tratto in discesa seguito da uno in salita
-[ F ] ...può trovarsi prima di un tratto in salita seguito da una discesa
-[ F ] ...indica una banchina cedevole
-In presenza del segnale raffigurato (003)...
-[ V ] ...è necessario moderare la velocità per mantenere il controllo del veicolo
-[ V ] ...è necessario moderare la velocità per evitare danni alle sospensioni
-[ V ] ...è necessario tenere il volante con una presa più sicura
-[ V ] ...e in caso di pioggia è necessario prevedere la possibilità di accumulo di acqua nella cunetta
-[ V ] ...è necessario prevedere la possibilità di accumulo di fango e detriti nella cunetta
-[ F ] ...è necessario rallentare solo se provengono veicoli dal senso opposto
-[ F ] ...è vietato il sorpasso se si circola in una strada a senso unico
-[ F ] ...non è necessario rallentare se la cunetta presenta visibilità
-Argomento: Curva pericolosa a destra (004)
-Il segnale raffigurato (004) preannuncia...
-[ F ] ...un cambio di corsia
-[ V ] ...una curva pericolosa a destra
-[ F ] ...una curva a sinistra
-[ V ] ...un tratto di strada pericoloso per ridotta visibilità
-[ F ] ...un obbligo di svolta a destra
-[ V ] ...un tratto di strada pericoloso
-[ F ] ...una serie di curve pericolose di cui la prima a destra
-[ V ] ...un tratto di strada in cui è necessario regolare la velocità in relazione alla visibilità e al raggio della curva
-[ V ] ...un tratto di strada in cui è necessario percorrere la curva con più attenzione se la strada è bagnata
-[ F ] ...un tratto di strada in cui è consentito sorpassare i motocicli, anche superando di poco la striscia bianca continua
-[ F ] ...un tratto di strada in cui è consentito sorpassare i motocicli, anche invadendo la corsia opposta
-[ F ] ...un tratto di strada a due corsie e doppio senso di circolazione in cui è consentito sorpassare i motocicli, senza superare la striscia bianca continua
-[ V ] ...un tratto di strada in cui non è consentito il sorpasso se la carreggiata è a doppio senso di circolazione e con due sole corsie
-[ F ] ...un tratto di strada in salita
-[ F ] ...un tratto di strada in cui è consentita la fermata, ma non la sosta
-[ F ] ...un tratto di strada in cui è consentito effettuare l'inversione di marcia
-[ F ] ...un tratto di strada in cui è consentito effettuare manovre di retromarcia
-Il segnale raffigurato (004)...
-[ V ] ...richiede di moderare la velocità
-[ F ] ...è posto, di norma, a 5 metri dall'inizio della curva
-[ V ] ...è posto, di norma, a 150 metri dal punto di inizio della curva
-[ F ] ...è un segnale di prescrizione
-[ V ] ...può essere integrato con pannello con la scritta TORNANTE
-[ F ] …posto su una strada a doppio senso di circolazione, impone di portarsi sulla parte sinistra della carreggiata per affrontare meglio la curva
-In presenza del segnale raffigurato (004)...
-[ F ] ...si deve circolare il più possibile vicino alla striscia bianca che separa i sensi di marcia
-[ V ] ...si deve viaggiare ad andatura particolarmente moderata se si circola con il ruotino (ruota di soccorso)
-[ V ] ...posto su strada a doppio senso di circolazione e con due sole corsie, si deve circolare il più possibile vicino al margine destro
-Argomento: Curva pericolosa a sinistra (005)
-La figura rappresenta (005)...
-[ V ] ...un segnale di pericolo
-[ F ] ...un divieto di svolta a sinistra
-[ F ] ...un segnale di obbligo
-[ F ] ...un segnale di prescrizione
-Il segnale raffigurato (005) preannuncia...
-[ V ] ...un tratto di strada che curva a sinistra con limitata visibilità
-[ V ] ...una curva pericolosa a sinistra
-[ V ] ...di norma a 150 metri, una curva pericolosa
-[ V ] ...un tratto di strada pericoloso per ridotta visibilità
-[ V ] ...un tratto di strada non rettilineo, che limita la visibilità
-[ F ] ...un ostacolo da aggirare a sinistra
-Il segnale raffigurato (005)...
-[ F ] ...indica una deviazione per cantiere di lavoro
-[ F ] ...indica una circolazione rotatoria
-[ F ] ...impone di circolare il più vicino possibile al centro della strada
-[ F ] ...impone l'obbligo di mantenere la sinistra
-[ V ] ...richiede di moderare la velocità per potersi arrestare in caso di un ostacolo improvviso
-In presenza del segnale raffigurato (005)...
-[ V ] ...è necessario regolare la velocità in relazione alla visibilità e al raggio della curva
-[ V ] ...si deve viaggiare ad andatura particolarmente moderata se si circola con il "ruotino" (ruota di soccorso)
-[ V ] ...non è consentito sorpassare altri veicoli su una carreggiata a doppio senso di circolazione con due sole corsie
-[ F ] ...è consentito effettuare l'inversione di marcia
-[ F ] ...è consentita la fermata ma non la sosta
-[ F ] ...è consentito effettuare manovre di retromarcia
-[ V ] ...è necessario percorrere la curva con più attenzione se la strada è bagnata
-[ F ] ...non è consentito il transito ai veicoli con il "ruotino" (ruota di soccorso)
-[ V ] ...su una strada a doppio senso di circolazione con due sole corsie, si deve circolare il più possibile vicino al margine destro
-[ F ] ...su strada a doppio senso di circolazione a due corsie, è consentito sorpassare i motocicli senza invadere la corsia opposta
-[ F ] ...su strada a senso unico di circolazione si deve marciare il più possibile vicino al margine destro della carreggiata
-Argomento: Doppia curva pericolosa la prima a destra (006)
-La figura rappresenta (006)...
-[ V ] ...un segnale di pericolo
-Il segnale raffigurato (006)...
-[ V ] ...può essere integrato con il pannello in figura
-[ V ] ...può essere integrato con un pannello indicante TORNANTI
-[ V ] ...richiede di moderare la velocità per potersi arrestare in caso di un ostacolo improvviso
-Il segnale raffigurato (006) preannuncia...
-[ V ] ...di norma a 150 metri, una doppia curva pericolosa
-[ F ] ...un raccordo di uscita autostradale
-[ F ] ...una deviazione per lavori in corso
-[ F ] ...un incrocio
-[ F ] ...una discesa pericolosa
-[ F ] ...un tratto di strada con superficie sdrucciolevole
-[ F ] ...un tratto di strada con pavimentazione irregolare
-[ V ] ...un tratto di strada non rettilineo che limita la visibilità
-[ V ] ...una doppia curva pericolosa, la prima a destra
-[ F ] ...un tratto di strada in cui è consentita l'inversione di marcia
-[ F ] ...un tratto di strada in cui è consentita la manovra di retromarcia
-Il segnale con il pannello in figura (006) preannuncia...
-[ F ] ...un tratto di strada lungo 3,8 km con una serie di curve pericolose
-In presenza del segnale raffigurato (006)...
-[ V ] ...è necessario regolare la velocità in relazione alla visibilità e al raggio delle curve
-[ V ] ...è necessario percorrere le curve con più attenzione in caso di pioggia
-[ V ] ...è necessario regolare la velocità in relazione alle condizioni di carico del veicolo
-[ F ] ...è necessario tenere una velocità moderata esclusivamente nella prima curva
-[ V ] ...bisogna moderare la velocità
-[ F ] ...è consentito effettuare la fermata in curva
-[ F ] ...è consentito sorpassare motocicli e ciclomotori su strada a due corsie e a doppio senso di circolazione
-[ F ] ...posto su strada a due corsie e a doppio senso di circolazione, è consentito sorpassare nelle ore diurne
-Su strada a due (sole) corsie e a doppio senso di circolazione, in presenza del segnale raffigurato (006)...
-[ V ] ...è opportuno fare particolare attenzione ai veicoli provenienti dal senso opposto
-[ V ] ...si deve marciare il più possibile vicino al margine destro
-Nella curve pericolose preannunciate dal segnale raffigurato (006)...
-[ V ] ...è vietato il sorpasso se la carreggiata è a due corsie e a doppio senso di circolazione
-Argomento: Doppia curva pericolosa la prima a sinistra (007)
-La figura rappresenta (007)...
-[ V ] ...un segnale di pericolo
-Il segnale raffigurato (007)...
-[ V ] ...richiede di moderare la velocità
-Il segnale raffigurato preannuncia (007)...
-[ F ] ...una deviazione per lavori in corso
-[ F ] ...un tratto di strada con una serie di dossi
-[ F ] ...un tratto di carreggiata sdrucciolevole
-[ F ] ...una strettoia
-[ F ] ...un tratto di strada deformata
-[ V ] ...in genere a 150 m, una doppia curva pericolosa
-[ V ] ...un tratto di strada non rettilineo che limita la visibilità
-[ V ] ...una doppia curva pericolosa, la prima a sinistra
-[ F ] ...una confluenza a sinistra
-[ V ] ...la presenza di tornanti se integrato con apposito pannello
-In presenza del segnale raffigurato (007)...
-[ V ] ...è necessario regolare la velocità in relazione alla visibilità e al raggio delle curve
-[ F ] ...è consentita la manovra di retromarcia
-[ V ] ...è necessario percorrere le curve con più attenzione in caso di pioggia
-[ F ] ...è consentita l'inversione di marcia
-[ F ] ...è consentito effettuare la fermata in corrispondenza delle curve
-[ V ] ...è necessario regolare la velocità in relazione alle condizioni di carico del veicolo
-[ V ] ...è opportuno fare particolare attenzione ai veicoli provenienti dal senso opposto
-[ V ] ...non è consentito effettuare manovre di sorpasso su strade a due sole corsie e a doppio senso di circolazione
-[ F ] ...è consentito sorpassare motocicli e ciclomotori su strade a due corsie e a doppio senso
-[ V ] ...si deve circolare il più vicino possibile al margine destro della carreggiata, su strada a due sole corsie e a doppio senso di circolazione
-[ F ] ...è necessario tenere una velocità moderata esclusivamente nella prima curva
-[ F ] ...posto su strade a due corsie e a doppio senso, è consentito sorpassare un veicolo molto lento
-`;
+        // --- DATASET (Extracted from your file) ---
+        // Structure: Topic Name -> Array of Question Objects { root, suffix, true, img? }
+        
+        const database = [
+            {
+                id: "strada",
+                title: "01.1 La Strada & Carreggiata",
+                icon: "🛣️",
+                questions: [
+                    { root: "La strada è...", suffix: "...riservata alla circolazione dei soli autoveicoli e motocicli", correct: false },
+                    { root: "La strada è...", suffix: "...aperta alla circolazione dei pedoni, degli animali e dei veicoli", correct: true },
+                    { root: "La strada è...", suffix: "...qualsiasi area asfaltata, limitata lateralmente dagli attraversamenti pedonali", correct: false },
+                    { root: "La strada può...", suffix: "...comprendere le piste ciclabili", correct: true },
+                    { root: "La strada può...", suffix: "...essere suddivisa in carreggiate", correct: true },
+                    { root: "La carreggiata è...", suffix: "...la parte della strada destinata normalmente alla circolazione dei veicoli", correct: true },
+                    { root: "La carreggiata è...", suffix: "...destinata alla sosta di emergenza", correct: false },
+                    { root: "Fanno parte della carreggiata...", suffix: "...le corsie di marcia", correct: true },
+                    { root: "Fanno parte della carreggiata...", suffix: "...i marciapiedi", correct: false },
+                    { root: "Fanno parte della carreggiata...", suffix: "...le corsie di emergenza delle autostrade", correct: false }
+                ]
+            },
+            {
+                id: "corsie",
+                title: "01.1 Corsie & Intersezioni",
+                icon: "🔀",
+                questions: [
+                    { root: "La corsia è...", suffix: "...una parte della carreggiata che consente la circolazione di una sola fila di veicoli", correct: true },
+                    { root: "La corsia può...", suffix: "...essere a doppio senso di circolazione", correct: false },
+                    { root: "La corsia di accelerazione...", suffix: "...serve per entrare correttamente in autostrada", correct: true },
+                    { root: "La corsia di decelerazione...", suffix: "...serve per entrare in una piazzola di sosta", correct: false },
+                    { root: "L'intersezione a raso...", suffix: "...è un'intersezione di due o più strade poste allo stesso livello", correct: true },
+                    { root: "L'intersezione a livelli sfalsati...", suffix: "...facilita la circolazione, perché esclude l'incrocio diretto fra i veicoli", correct: true }
+                ]
+            },
+            {
+                id: "segnali_pericolo_1",
+                title: "02.1 Segnali: Deformata & Dossi",
+                icon: "⚠️",
+                questions: [
+                    { img: "001 strada deformata.png", root: "Il segnale raffigurato (001)...", suffix: "preannuncia un tratto di strada deformata", correct: true },
+                    { img: "001 strada deformata.png", root: "Il segnale raffigurato (001)...", suffix: "preannuncia una serie di dossi", correct: false },
+                    { img: "001 strada deformata.png", root: "In presenza del segnale (001)...", suffix: "è necessario tenere saldamente il volante per controllare sbandamenti", correct: true },
+                    { img: "002 dosso.png", root: "Il segnale raffigurato (002)...", suffix: "preannuncia un dosso", correct: true },
+                    { img: "002 dosso.png", root: "Il segnale raffigurato (002)...", suffix: "preannuncia una cunetta", correct: false },
+                    { img: "002 dosso.png", root: "Il segnale raffigurato (002)...", suffix: "preannuncia una variazione di pendenza con limitata visibilità", correct: true },
+                    { img: "002 dosso.png", root: "In presenza del segnale (002)...", suffix: "è vietata l'inversione di marcia", correct: true },
+                    { img: "003 cunetta.png", root: "Il segnale raffigurato (003)...", suffix: "preannuncia una cunetta", correct: true },
+                    { img: "003 cunetta.png", root: "Il segnale raffigurato (003)...", suffix: "si trova prima di un tratto in discesa seguito da uno in salita", correct: true },
+                    { img: "003 cunetta.png", root: "In presenza del segnale (003)...", suffix: "è necessario prevedere la possibilità di accumulo di acqua", correct: true }
+                ]
+            },
+            {
+                id: "segnali_pericolo_2",
+                title: "02.1 Segnali: Curve Pericolose",
+                icon: "↪️",
+                questions: [
+                    { img: "004 curva pericolosa a destra.png", root: "Il segnale raffigurato (004)...", suffix: "preannuncia una curva pericolosa a destra", correct: true },
+                    { img: "004 curva pericolosa a destra.png", root: "Il segnale raffigurato (004)...", suffix: "preannuncia un obbligo di svolta a destra", correct: false },
+                    { img: "005 curva pericolosa a sinistra.png", root: "Il segnale raffigurato (005)...", suffix: "richiede di moderare la velocità", correct: true },
+                    { img: "005 curva pericolosa a sinistra.png", root: "In presenza del segnale (005)...", suffix: "è consentito effettuare l'inversione di marcia", correct: false },
+                    { img: "006 doppia curva pericolosa la prima a destra.png", root: "Il segnale raffigurato (006)...", suffix: "preannuncia una doppia curva pericolosa, la prima a destra", correct: true },
+                    { img: "006 doppia curva pericolosa la prima a destra.png", root: "Il segnale raffigurato (006)...", suffix: "preannuncia un tratto di strada sdrucciolevole", correct: false },
+                    { img: "007 doppia curva pericolosa la prima a sinistra.png", root: "Il segnale raffigurato (007)...", suffix: "preannuncia, di norma a 150 metri, una doppia curva pericolosa", correct: true },
+                    { img: "007 doppia curva pericolosa la prima a sinistra.png", root: "In presenza del segnale (007)...", suffix: "è necessario percorrere le curve con più attenzione in caso di pioggia", correct: true },
+                    { img: "007 doppia curva pericolosa la prima a sinistra.png", root: "In presenza del segnale (007)...", suffix: "è consentito il sorpasso se la carreggiata è a due corsie e a doppio senso", correct: false }
+                ]
+            },
+            {
+                id: "utenti_deboli",
+                title: "01.4 Utenti Deboli",
+                icon: "🚸",
+                questions: [
+                    { root: "Bisogna usare maggiore prudenza...", suffix: "...nei confronti delle persone anziane", correct: true },
+                    { root: "Quando le persone anziane attraversano...", suffix: "...bisogna suonare il clacson per farle attraversare rapidamente", correct: false },
+                    { root: "Il conducente deve...", suffix: "...fermarsi quando un pedone non vedente col bastone bianco attraversa", correct: true },
+                    { root: "In vicinanza di un attraversamento pedonale...", suffix: "...i bambini potrebbero tornare indietro improvvisamente", correct: true },
+                    { root: "Quando un pedone spinge una carrozzina...", suffix: "...bisogna dargli la precedenza solo se attraversa da sinistra", correct: false }
+                ]
+            }
+        ];
 
-            // --- APP LOGIC ---
-            window.app = {
-                data: { lessons: [] },
-                queue: [],
-                index: 0,
-                streak: 0,
-                busy: false,
+        // --- STATE ---
+        let currentQuiz = [];
+        let currentIndex = 0;
+        let score = 0;
+        let streak = 0;
 
-                // SVG Generators
-                getSignalSVG: function(code) {
-                    const base = `<svg viewBox="0 0 100 100" class="traffic-sign-svg"><path d="M50 5 L95 90 L5 90 Z" fill="white" stroke="#cc0000" stroke-width="8" stroke-linejoin="round"/>`;
-                    const content = {
-                        '001': '<path d="M25 70 Q35 50 50 70 Q65 50 75 70" fill="none" stroke="black" stroke-width="8" stroke-linecap="round" />', 
-                        '002': '<path d="M25 70 Q50 30 75 70" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />',
-                        '003': '<path d="M25 50 Q50 90 75 50" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />',
-                        '004': '<path d="M40 75 V55 Q40 40 70 45 L65 35 L80 50 L65 65 L70 55 Q50 50 50 75" fill="black" />',
-                        '005': '<path d="M60 75 V55 Q60 40 30 45 L35 35 L20 50 L35 65 L30 55 Q50 50 50 75" fill="black" />',
-                        '006': '<path d="M35 75 V60 Q35 45 50 45 Q65 45 65 35 L55 35 L70 20 L85 35 L75 35 Q75 55 50 55 Q45 55 45 75" fill="black" />',
-                        '007': '<path d="M65 75 V60 Q65 45 50 45 Q35 45 35 35 L45 35 L30 20 L15 35 L25 35 Q25 55 50 55 Q55 55 55 75" fill="black" />'
-                    };
-                    return content[code] ? base + content[code] + '</svg>' : null;
-                },
+        // --- DOM ELEMENTS ---
+        const homeView = document.getElementById('home-view');
+        const quizView = document.getElementById('quiz-view');
+        const resultsView = document.getElementById('results-view');
+        const topicsList = document.getElementById('topics-list');
+        
+        const qTopic = document.getElementById('q-topic');
+        const qCounter = document.getElementById('q-counter');
+        const qRoot = document.getElementById('q-root');
+        const qSuffix = document.getElementById('q-suffix');
+        const qImageBox = document.getElementById('q-image-box');
+        const qImage = document.getElementById('q-image');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        const feedbackContent = document.getElementById('feedback-content');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackText = document.getElementById('feedback-text');
 
-                cleanText: function(t) { return t.replace(/…/g, '...').replace(/•/g, '').trim(); },
-
-                parseData: function() {
-                    const lines = DATA_SOURCE.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                    let lesson = null, topic = null, root = null;
-                    
-                    lines.forEach(line => {
-                        try {
-                            if (line.startsWith('Lezione:')) {
-                                lesson = { id: this.data.lessons.length, title: this.cleanText(line.replace('Lezione:', '')), topics: [] };
-                                this.data.lessons.push(lesson);
-                                topic = null; root = null;
-                            } else if (line.startsWith('Argomento:')) {
-                                if (!lesson) { 
-                                    lesson = { id: 0, title: "Generale", topics: [] };
-                                    this.data.lessons.push(lesson);
-                                }
-                                const imgMatch = line.match(/\((\d{3})\)/);
-                                const imgCode = imgMatch ? imgMatch[1] : null;
-                                const titleClean = this.cleanText(line.replace('Argomento:', '').replace(/\(\d{3}\)/, ''));
-                                topic = { title: titleClean, imageCode: imgCode, roots: [] };
-                                lesson.topics.push(topic);
-                                root = null;
-                            } else if (line.match(/^\[\s*[VF]\s*\]/i)) { // Robust Regex Match
-                                if (root) {
-                                    const isTrue = line.includes('V');
-                                    const text = this.cleanText(line.substring(line.indexOf(']') + 1));
-                                    root.items.push({ text, isTrue });
-                                }
-                            } else if (!line.startsWith('Listato') && !line.startsWith('Metodo:')) {
-                                if (topic) {
-                                    root = { text: this.cleanText(line), items: [] };
-                                    topic.roots.push(root);
-                                }
-                            }
-                        } catch(e) { console.warn("Line parse error", e); }
-                    });
-                },
-
-                initGame: function(mode, selectedIds = []) {
-                    this.queue = [];
-                    this.index = 0;
-                    this.streak = 0;
-                    this.busy = false;
-                    document.getElementById('streak-display').innerText = '0';
-
-                    const lessons = mode === 'mix' ? this.data.lessons : this.data.lessons.filter(l => selectedIds.includes(l.id));
-                    
-                    lessons.forEach(l => {
-                        l.topics.forEach(t => {
-                            t.roots.forEach(r => {
-                                r.items.forEach(i => {
-                                    this.queue.push({
-                                        lesson: l.title, topic: t.title,
-                                        root: r.text, completion: i.text, isTrue: i.isTrue,
-                                        imageCode: t.imageCode
-                                    });
-                                });
-                            });
-                        });
-                    });
-
-                    if (mode === 'mix') this.queue.sort(() => Math.random() - 0.5);
-
-                    if (this.queue.length > 0) {
-                        this.renderCard();
-                    } else {
-                        document.getElementById('card-root').innerText = "Nessuna domanda caricata.";
-                        document.getElementById('card-completion').innerText = "Controlla i dati.";
-                    }
-                },
-
-                renderCard: function() {
-                    if (this.index >= this.queue.length) {
-                        document.getElementById('card-completion').innerText = "Hai finito!";
-                        document.getElementById('card-root').innerText = "Ottimo lavoro 🎉";
-                        document.getElementById('card-image-wrapper').classList.add('hidden');
-                        confetti();
-                        return;
-                    }
-
-                    const item = this.queue[this.index];
-                    const imgWrap = document.getElementById('card-image-wrapper');
-                    
-                    if (item.imageCode) {
-                        const svg = this.getSignalSVG(item.imageCode);
-                        if (svg) {
-                            imgWrap.innerHTML = svg;
-                            imgWrap.classList.remove('hidden');
-                        } else {
-                            imgWrap.classList.add('hidden');
-                        }
-                    } else {
-                        imgWrap.classList.add('hidden');
-                    }
-
-                    document.getElementById('card-root').innerText = item.root;
-                    const compEl = document.getElementById('card-completion');
-                    
-                    compEl.style.animation = 'none';
-                    compEl.offsetHeight; 
-                    compEl.style.animation = null; 
-                    compEl.innerText = item.completion;
-                    compEl.classList.add('anim-enter');
-
-                    document.getElementById('lesson-info').innerText = item.topic;
-                    document.getElementById('progress-bar').style.width = `${(this.index / this.queue.length) * 100}%`;
-                },
-
-                checkAnswer: function(choice) {
-                    if (this.busy || this.index >= this.queue.length) return;
-                    this.busy = true;
-
-                    const item = this.queue[this.index];
-                    const isCorrect = choice === item.isTrue;
-                    const overlay = document.getElementById('feedback-overlay');
-                    const icon = document.getElementById('feedback-icon');
-                    const text = document.getElementById('feedback-text');
-                    const container = document.getElementById('card-container');
-
-                    overlay.classList.remove('hidden');
-                    overlay.classList.add('flex');
-
-                    if (isCorrect) {
-                        this.streak++;
-                        confetti({ particleCount: 20, spread: 40, origin: { y: 0.7 } });
-                        overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-green-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
-                        icon.innerHTML = '<i class="ph-fill ph-check-circle text-green-300"></i>';
-                        text.innerText = "ESATTO!";
-                        text.className = "text-2xl font-bold text-green-300 tracking-wider";
-                    } else {
-                        this.streak = 0;
-                        container.classList.add('anim-shake');
-                        overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
-                        icon.innerHTML = '<i class="ph-fill ph-x-circle text-red-300"></i>';
-                        text.innerText = item.isTrue ? "ERA VERO" : "ERA FALSO";
-                        text.className = "text-2xl font-bold text-red-300 tracking-wider";
-                        setTimeout(() => container.classList.remove('anim-shake'), 400);
-                    }
-
-                    document.getElementById('streak-display').innerText = this.streak;
-                    requestAnimationFrame(() => { icon.classList.remove('scale-0'); icon.classList.add('scale-100'); });
-
-                    setTimeout(() => {
-                        overlay.classList.add('hidden');
-                        overlay.classList.remove('flex');
-                        icon.classList.add('scale-0');
-                        icon.classList.remove('scale-100');
-                        this.index++;
-                        this.renderCard();
-                        this.busy = false;
-                    }, 800);
-                },
-
-                setMode: function(mode) {
-                    document.getElementById('view-selection').style.transform = "translateY(100%)";
-                    
-                    document.querySelectorAll('nav button').forEach(b => {
-                        b.classList.remove('text-purple-400');
-                        b.classList.add('text-gray-500');
-                    });
-
-                    if (mode === 'pattern') {
-                        document.getElementById('view-game').classList.add('hidden');
-                        document.getElementById('view-pattern').classList.remove('hidden');
-                        document.getElementById('nav-pattern').classList.add('text-purple-400');
-                        this.renderPattern();
-                    } else {
-                        document.getElementById('view-pattern').classList.add('hidden');
-                        document.getElementById('view-game').classList.remove('hidden');
-                        document.getElementById('nav-mix').classList.add('text-purple-400');
-                        if (mode === 'mix') this.initGame('mix');
-                    }
-                },
-
-                toggleSelectionView: function() {
-                    const el = document.getElementById('view-selection');
-                    const isOpen = el.style.transform === "translateY(0%)";
-                    
-                    if (!isOpen) {
-                        this.renderSelectionList();
-                        el.style.transform = "translateY(0%)";
-                        document.querySelectorAll('nav button').forEach(b => {
-                            b.classList.remove('text-purple-400');
-                            b.classList.add('text-gray-500');
-                        });
-                        document.getElementById('nav-study').classList.add('text-purple-400');
-                    } else {
-                        el.style.transform = "translateY(100%)";
-                        this.setMode('mix');
-                    }
-                },
-
-                renderSelectionList: function() {
-                    const container = document.getElementById('selection-list');
-                    container.innerHTML = '';
-                    this.data.lessons.forEach(l => {
-                        container.innerHTML += `
-                            <label class="custom-checkbox flex items-center p-4 rounded-xl bg-[#18181b] border border-white/5 cursor-pointer active:scale-[0.98] transition-transform shadow-sm">
-                                <input type="checkbox" value="${l.id}" class="hidden" checked>
-                                <div class="w-6 h-6 rounded-md border-2 border-gray-600 flex items-center justify-center mr-4 transition-colors">
-                                    <i class="ph-bold ph-check text-white text-xs"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-sm text-gray-200 leading-tight">${l.title}</h3>
-                                    <p class="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider">${l.topics.length} Argomenti</p>
-                                </div>
-                            </label>`;
-                    });
-                },
-
-                startStudyMode: function() {
-                    const selectedIds = Array.from(document.querySelectorAll('#selection-list input:checked')).map(cb => parseInt(cb.value));
-                    if (selectedIds.length === 0) return alert("Seleziona almeno un argomento!");
-                    document.getElementById('view-selection').style.transform = "translateY(100%)";
-                    document.getElementById('view-pattern').classList.add('hidden');
-                    document.getElementById('view-game').classList.remove('hidden');
-                    this.initGame('study', selectedIds);
-                },
-
-                renderPattern: function() {
-                    const container = document.getElementById('view-pattern');
-                    if(container.innerHTML.trim().length > 50) return;
-
-                    let html = '';
-                    this.data.lessons.forEach(l => {
-                        l.topics.forEach(t => {
-                            const imgSVG = t.imageCode ? `<div class="w-16 h-16 mx-auto mb-2">${this.getSignalSVG(t.imageCode)}</div>` : '';
-                            html += `<div class="mb-6 text-center">
-                                ${imgSVG}
-                                <h3 class="text-xs font-bold text-purple-400 uppercase mb-2 border-b border-purple-500/30 pb-1 inline-block">${t.title}</h3>`;
-                            
-                            t.roots.forEach(r => {
-                                html += `<div class="bg-[#18181b] rounded-xl p-4 mb-3 border border-white/5 text-left shadow-sm">
-                                    <p class="text-sm text-gray-400 mb-3 border-b border-white/5 pb-2">${r.text}</p>
-                                    <div class="space-y-2">`;
-                                r.items.forEach(i => {
-                                     html += `
-                                        <div class="flex gap-3 items-start">
-                                            <i class="ph-fill ${i.isTrue ? 'ph-check-circle text-green-500' : 'ph-x-circle text-red-500'} mt-0.5 text-lg shrink-0"></i>
-                                            <span class="text-sm text-gray-200 leading-snug">${i.text}</span>
-                                        </div>`;
-                                });
-                                html += `</div></div>`;
-                            });
-                            html += `</div>`;
-                        });
-                    });
-                    container.innerHTML = html;
-                }
-            };
-
-            // Start
-            window.onload = () => {
-                try {
-                    window.app.parseData();
-                    window.app.initGame('mix');
-                } catch(e) {
-                    document.getElementById('debug-console').classList.remove('hidden');
-                    document.getElementById('error-message').innerText = e.toString();
-                }
-            };
-        } catch(globalError) {
-            document.getElementById('debug-console').classList.remove('hidden');
-            document.getElementById('error-message').innerText = "Global Error: " + globalError.toString();
+        // --- INITIALIZATION ---
+        function init() {
+            renderTopics();
         }
+
+        function renderTopics() {
+            topicsList.innerHTML = '';
+            database.forEach((topic, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'bg-[#1e1e1e] p-4 rounded-xl border border-gray-800 flex items-center justify-between cursor-pointer hover:border-[var(--neon-green)] transition-all active:scale-95 group';
+                btn.onclick = () => startQuiz(index);
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="text-3xl bg-gray-800 w-12 h-12 flex items-center justify-center rounded-full group-hover:bg-[var(--neon-green)] group-hover:text-black transition-colors">
+                            ${topic.icon}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">${topic.title}</h3>
+                            <p class="text-xs text-gray-500">${topic.questions.length} domande</p>
+                        </div>
+                    </div>
+                    <div class="text-[var(--neon-green)] opacity-0 group-hover:opacity-100 transition-opacity">
+                        ▶
+                    </div>
+                `;
+                topicsList.appendChild(btn);
+            });
+        }
+
+        // --- GAME LOGIC ---
+
+        function startQuiz(topicIndex) {
+            // Setup Logic
+            currentQuiz = [...database[topicIndex].questions];
+            // Shuffle questions slightly for variety inside the topic
+            currentQuiz.sort(() => Math.random() - 0.5);
+            
+            currentIndex = 0;
+            score = 0;
+            streak = 0;
+            updateStats();
+
+            // UI Transition
+            homeView.classList.add('hidden');
+            resultsView.classList.add('hidden');
+            quizView.classList.remove('hidden');
+            
+            qTopic.innerText = database[topicIndex].title;
+            
+            loadCard();
+        }
+
+        function loadCard() {
+            const question = currentQuiz[currentIndex];
+            
+            // Animation reset
+            document.getElementById('card-area').classList.remove('anim-shake');
+            document.getElementById('card-area').classList.add('anim-pop');
+            setTimeout(() => document.getElementById('card-area').classList.remove('anim-pop'), 300);
+
+            // Set Content
+            qCounter.innerText = `${currentIndex + 1}/${currentQuiz.length}`;
+            qRoot.innerText = question.root;
+            qSuffix.innerText = question.suffix;
+
+            // Image Handling
+            if (question.img) {
+                qImageBox.classList.remove('hidden');
+                qImage.src = question.img;
+                qImage.onerror = function() {
+                    this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTU1IiBzdHJva2Utd2lkdGg9IjIiPjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIi8+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiLz48cG9seWxpbmUgcG9pbnRzPSIyMSAxNSAxNiAxMCA1IDIxIi8+PC9zdmc+'; // Fallback icon
+                }
+            } else {
+                qImageBox.classList.add('hidden');
+            }
+
+            // Progress Bar
+            const progress = (currentIndex / currentQuiz.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function handleAnswer(userChoice) {
+            const question = currentQuiz[currentIndex];
+            const isCorrect = (userChoice === question.correct);
+
+            showFeedback(isCorrect);
+
+            if (isCorrect) {
+                score++;
+                streak++;
+            } else {
+                streak = 0;
+                document.getElementById('card-area').classList.add('anim-shake');
+            }
+            
+            updateStats();
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < currentQuiz.length) {
+                    loadCard();
+                } else {
+                    showResults();
+                }
+            }, 1200); // Wait for feedback animation
+        }
+
+        function showFeedback(isCorrect) {
+            feedbackOverlay.classList.remove('hidden');
+            
+            // Allow reflow
+            void feedbackContent.offsetWidth;
+            
+            feedbackContent.classList.remove('scale-0');
+            feedbackContent.classList.add('scale-100');
+
+            if (isCorrect) {
+                feedbackIcon.innerText = getRandomItem(['🔥', '✨', '💎', '🚀', '✅']);
+                feedbackText.innerText = getRandomItem(['SLAY!', 'CORRETTO', 'GENIUS', 'TOP']);
+                feedbackText.className = 'text-3xl font-bold text-[var(--correct)]';
+            } else {
+                feedbackIcon.innerText = getRandomItem(['💀', '🛑', '👀', '❌']);
+                feedbackText.innerText = getRandomItem(['NOPE', 'SBAGLIATO', 'OPS...', 'RIP']);
+                feedbackText.className = 'text-3xl font-bold text-[var(--wrong)]';
+            }
+
+            setTimeout(() => {
+                feedbackContent.classList.remove('scale-100');
+                feedbackContent.classList.add('scale-0');
+                setTimeout(() => {
+                    feedbackOverlay.classList.add('hidden');
+                }, 200);
+            }, 900);
+        }
+
+        function showResults() {
+            quizView.classList.add('hidden');
+            resultsView.classList.remove('hidden');
+
+            const percentage = Math.round((score / currentQuiz.length) * 100);
+            document.getElementById('final-score').innerText = `${percentage}%`;
+            
+            const circle = document.getElementById('score-circle');
+            const circumference = 2 * Math.PI * 40; // r=40
+            const offset = circumference - (percentage / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+
+            // Color code the result
+            if (percentage >= 90) {
+                document.getElementById('result-title').innerText = "PATENTE PRESA! 🚗";
+                document.getElementById('result-title').className = "text-3xl font-bold text-[var(--neon-green)]";
+                document.getElementById('result-msg').innerText = "Sei un mostro sacro del codice della strada.";
+            } else if (percentage >= 70) {
+                document.getElementById('result-title').innerText = "Promosso (ma occhio)";
+                document.getElementById('result-title').className = "text-3xl font-bold text-yellow-400";
+                document.getElementById('result-msg').innerText = "Buono, ma ripassa i segnali più difficili.";
+            } else {
+                document.getElementById('result-title').innerText = "Bocciato 💀";
+                document.getElementById('result-title').className = "text-3xl font-bold text-[var(--wrong)]";
+                document.getElementById('result-msg').innerText = "Meglio se ti fai un altro giro di ripasso.";
+            }
+        }
+
+        function goHome() {
+            resultsView.classList.add('hidden');
+            homeView.classList.remove('hidden');
+        }
+
+        function updateStats() {
+            document.getElementById('streak-counter').innerText = streak;
+            document.getElementById('score-counter').innerText = score;
+            // Only show stats in quiz mode
+            const statsDisplay = document.getElementById('stats-display');
+            if (!homeView.classList.contains('hidden')) {
+                statsDisplay.classList.add('hidden');
+            } else {
+                statsDisplay.classList.remove('hidden');
+            }
+        }
+
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Run
+        init();
+
     </script>
 </body>
 </html>
