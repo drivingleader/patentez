@@ -26,15 +26,14 @@
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: var(--dark-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
         .glass-panel {
-            background: rgba(30, 30, 30, 0.7);
+            background: rgba(18, 18, 18, 0.95);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .gradient-text {
@@ -44,195 +43,224 @@
         }
 
         .btn-press {
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .btn-press:active {
             transform: scale(0.95);
         }
 
         /* Animations */
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
         
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+        .anim-slide-up { animation: slideUp 0.4s ease-out forwards; }
+        .anim-fade { animation: fadeIn 0.3s ease-out; }
+
+        /* Styles for the Selection Items */
+        .option-item {
+            background: #2a2a2a;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .option-item.selected {
+            border-color: var(--neon-green);
+            background: rgba(204, 255, 0, 0.1);
+            color: white;
+        }
+        .option-item.correct-answer {
+            background: rgba(0, 230, 118, 0.2);
+            border-color: var(--correct);
+        }
+        .option-item.wrong-answer { /* Should have been selected but wasn't */
+            border-color: var(--correct);
+            border-style: dashed;
+            opacity: 0.7;
+        }
+        .option-item.wrong-selected { /* Selected but was false */
+            background: rgba(255, 23, 68, 0.2);
+            border-color: var(--wrong);
         }
 
-        .anim-slide-in { animation: slideIn 0.4s ease-out forwards; }
-        .anim-pop { animation: pop 0.3s ease-out; }
-        .anim-shake { animation: shake 0.3s ease-in-out; }
-
-        .true-btn { background-color: rgba(0, 230, 118, 0.2); border: 2px solid var(--correct); color: var(--correct); }
-        .false-btn { background-color: rgba(255, 23, 68, 0.2); border: 2px solid var(--wrong); color: var(--wrong); }
-        
-        .image-container img {
-            max-height: 25vh;
-            object-fit: contain;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
-            transition: transform 0.3s ease;
+        /* Topic Selection */
+        .topic-card.active {
+            border-color: var(--neon-green);
+            background: rgba(204, 255, 0, 0.05);
         }
-        .image-container img:hover {
-            transform: scale(1.05);
+        .topic-card .check-circle {
+            background: #333;
+        }
+        .topic-card.active .check-circle {
+            background: var(--neon-green);
+            color: black;
         }
 
-        #progress-bar { transition: width 0.3s ease; }
+        #bottom-cta {
+            background: linear-gradient(to top, #121212 80%, transparent);
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="p-4 flex justify-between items-center glass-panel sticky top-0 z-50">
-        <div class="font-bold text-xl tracking-tighter">DRIVE<span class="text-[var(--neon-green)]">2026</span></div>
-        <div id="stats-display" class="hidden text-sm font-medium bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
-            🔥 <span id="streak-counter">0</span> | 🏆 <span id="score-counter">0</span>
+    <header class="p-4 flex justify-between items-center glass-panel sticky top-0 z-50 h-16">
+        <div class="flex items-center gap-3">
+            <button id="back-btn" onclick="confirmExit()" class="hidden w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400">
+                ✕
+            </button>
+            <div class="font-bold text-xl tracking-tighter">DRIVE<span class="text-[var(--neon-green)]">2026</span></div>
+        </div>
+        
+        <!-- Score Pill -->
+        <div id="stats-pill" class="hidden text-xs font-bold font-mono bg-[#2a2a2a] px-3 py-1.5 rounded-full border border-gray-700 text-[var(--neon-green)]">
+            SCORE: <span id="current-score">0</span>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main id="app-container" class="flex-grow relative overflow-hidden flex flex-col items-center justify-center p-4">
+    <!-- Main Content -->
+    <main class="flex-grow relative overflow-hidden flex flex-col w-full max-w-lg mx-auto">
         
-        <!-- VIEW: Home / Topic Selection -->
-        <div id="home-view" class="w-full max-w-md space-y-6 anim-slide-in">
-            <div class="text-center space-y-2">
-                <h1 class="text-4xl font-bold leading-none">Ready to <br><span class="gradient-text">Level Up?</span></h1>
-                <p class="text-gray-400 text-sm">Seleziona un modulo per iniziare il pattern matching.</p>
+        <!-- VIEW: Home -->
+        <div id="home-view" class="flex flex-col h-full p-4 anim-fade">
+            <div class="mb-4">
+                <h1 class="text-3xl font-bold leading-none mb-2">Micro-Learning <br><span class="gradient-text">Studio</span></h1>
+                <p class="text-gray-500 text-xs uppercase tracking-widest">Seleziona gli argomenti da mixare</p>
             </div>
 
-            <div class="grid grid-cols-1 gap-3 overflow-y-auto max-h-[60vh] pb-20 pr-1">
-                <!-- Generated via JS -->
-                <div id="topics-list" class="space-y-3"></div>
+            <div id="topics-list" class="flex-grow overflow-y-auto space-y-2 pb-24 pr-1">
+                <!-- JS will inject topics here -->
+            </div>
+
+            <!-- Floating CTA -->
+            <div id="bottom-cta" class="absolute bottom-0 left-0 w-full p-6 flex justify-center pointer-events-none">
+                <button id="start-btn" onclick="startQuiz()" disabled class="pointer-events-auto w-full bg-[var(--neon-green)] text-black font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(204,255,0,0.3)] disabled:opacity-50 disabled:shadow-none transition-all transform hover:-translate-y-1 active:translate-y-0">
+                    AVVIA MIX (<span id="selected-count">0</span>)
+                </button>
             </div>
         </div>
 
-        <!-- VIEW: Quiz / Pattern Matcher -->
-        <div id="quiz-view" class="hidden w-full max-w-md h-full flex flex-col justify-between py-2">
+        <!-- VIEW: Quiz (Grouped) -->
+        <div id="quiz-view" class="hidden flex flex-col h-full p-4 pb-6">
             
-            <!-- Progress -->
-            <div class="w-full bg-gray-800 h-2 rounded-full mb-4 overflow-hidden">
-                <div id="progress-bar" class="h-full bg-[var(--neon-green)] w-0"></div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-800 h-1.5 rounded-full mb-4 overflow-hidden">
+                <div id="progress-bar" class="h-full bg-[var(--neon-green)] w-0 transition-all duration-500"></div>
             </div>
 
-            <!-- Card -->
-            <div id="card-area" class="flex-grow flex flex-col bg-[#1e1e1e] rounded-3xl p-6 border border-gray-800 shadow-2xl relative overflow-y-auto">
+            <div class="flex-grow overflow-y-auto flex flex-col items-center">
                 
-                <!-- Topic Label -->
-                <div class="flex justify-between items-start mb-4">
-                    <span id="q-topic" class="text-xs font-bold text-gray-500 uppercase tracking-widest">Argomento</span>
-                    <span id="q-counter" class="text-xs text-gray-600">1/10</span>
+                <!-- Image Area (Optional) -->
+                <div id="q-image-box" class="w-full max-h-[20vh] mb-4 hidden flex justify-center">
+                    <img id="q-image" src="" class="h-full object-contain rounded-lg shadow-lg border border-gray-800">
                 </div>
 
-                <!-- Visual Focus (Image) -->
-                <div id="q-image-box" class="image-container w-full flex justify-center mb-4 hidden">
-                    <img id="q-image" src="" alt="Segnale Stradale" class="rounded-lg">
+                <!-- Root (Background Context) -->
+                <div class="w-full text-center mb-6 px-2 opacity-60">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-1">ARGOMENTO / RADICE</p>
+                    <h2 id="q-root" class="text-sm font-medium text-gray-400 leading-snug">...</h2>
                 </div>
 
-                <!-- The ROOT (The Pattern) -->
-                <div class="mb-6">
-                    <p class="text-[var(--neon-green)] text-sm font-bold mb-1">RADICE:</p>
-                    <h2 id="q-root" class="text-2xl md:text-3xl font-bold leading-tight">...</h2>
-                </div>
-
-                <!-- The SUFFIX (The Question) -->
-                <div class="flex-grow flex items-center justify-center bg-[#252525] rounded-xl p-4 border border-gray-700 mb-4">
-                    <p id="q-suffix" class="text-lg md:text-xl text-center leading-relaxed font-medium">...</p>
-                </div>
-
-                <!-- Feedback Overlay -->
-                <div id="feedback-overlay" class="absolute inset-0 z-10 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl">
-                    <div class="text-center transform scale-0 transition-transform duration-200" id="feedback-content">
-                        <div id="feedback-icon" class="text-6xl mb-2"></div>
-                        <div id="feedback-text" class="text-2xl font-bold"></div>
+                <!-- Interaction: Options List -->
+                <div class="w-full space-y-3 mb-6">
+                    <div class="flex justify-between items-end mb-2 px-1">
+                        <span class="text-xl font-bold text-white">Seleziona le VERE:</span>
+                        <span class="text-xs text-[var(--neon-green)] font-mono animate-pulse">TAP TO SELECT</span>
+                    </div>
+                    
+                    <div id="options-container" class="space-y-3">
+                        <!-- Options generated here -->
                     </div>
                 </div>
 
             </div>
 
-            <!-- Controls -->
-            <div class="grid grid-cols-2 gap-4 mt-4 h-20">
-                <button onclick="handleAnswer(false)" class="btn-press false-btn rounded-2xl text-xl font-bold flex items-center justify-center shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
-                    FALSO
-                </button>
-                <button onclick="handleAnswer(true)" class="btn-press true-btn rounded-2xl text-xl font-bold flex items-center justify-center shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
-                    VERO
-                </button>
-            </div>
+            <!-- Confirm Button -->
+            <button id="confirm-btn" onclick="checkAnswers()" class="w-full bg-white text-black font-bold py-4 rounded-xl text-lg shadow-lg btn-press">
+                CONFERMA
+            </button>
+            
+            <button id="next-btn" onclick="nextCard()" class="hidden w-full bg-[#333] text-white border border-gray-600 font-bold py-4 rounded-xl text-lg shadow-lg btn-press flex justify-center items-center gap-2">
+                CONTINUA ➜
+            </button>
         </div>
 
         <!-- VIEW: Results -->
-        <div id="results-view" class="hidden w-full max-w-md text-center space-y-8 anim-slide-in">
-            <div class="relative inline-block">
-                <svg class="w-40 h-40 mx-auto" viewBox="0 0 100 100">
-                    <circle class="text-gray-800 stroke-current" stroke-width="8" cx="50" cy="50" r="40" fill="transparent"></circle>
-                    <circle id="score-circle" class="text-[var(--neon-green)] progress-ring__circle stroke-current" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="0"></circle>
+        <div id="results-view" class="hidden h-full flex flex-col items-center justify-center p-6 text-center anim-slide-up">
+            <div class="mb-8 relative">
+                <svg class="w-48 h-48" viewBox="0 0 100 100">
+                    <circle class="text-gray-800 stroke-current" stroke-width="6" cx="50" cy="50" r="45" fill="none"></circle>
+                    <circle id="score-ring" class="text-[var(--neon-green)] stroke-current transition-all duration-1000 ease-out" stroke-width="6" stroke-linecap="round" cx="50" cy="50" r="45" fill="none" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(-90 50 50)"></circle>
                 </svg>
-                <div class="absolute inset-0 flex items-center justify-center flex-col">
-                    <span id="final-score" class="text-4xl font-bold">0%</span>
-                    <span class="text-xs text-gray-400">ACCURACY</span>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="final-score-val" class="text-5xl font-bold">0%</span>
+                    <span class="text-xs text-gray-500 uppercase tracking-widest mt-1">Accuracy</span>
                 </div>
             </div>
 
-            <div>
-                <h2 id="result-title" class="text-3xl font-bold mb-2">Not Bad!</h2>
-                <p id="result-msg" class="text-gray-400">Hai completato il modulo. Continua così per dominare l'esame.</p>
-            </div>
+            <h2 id="result-title" class="text-3xl font-bold mb-2 text-white">Risultato</h2>
+            <p id="result-msg" class="text-gray-400 mb-10 max-w-xs mx-auto">...</p>
 
-            <button onclick="goHome()" class="w-full bg-white text-black py-4 rounded-xl font-bold text-lg btn-press hover:bg-gray-200 transition-colors">
-                TORNA ALLA HOME
+            <button onclick="goHome()" class="w-full bg-[var(--neon-green)] text-black font-bold py-4 rounded-xl btn-press">
+                TORNA AL MENU
             </button>
         </div>
 
     </main>
 
+    <!-- Confirmation Modal -->
+    <div id="exit-modal" class="fixed inset-0 z-[60] bg-black/90 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#1e1e1e] p-6 rounded-2xl border border-gray-800 w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold mb-2">Esci dal Quiz?</h3>
+            <p class="text-gray-400 mb-6 text-sm">Perderai i progressi di questa sessione.</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-3 rounded-lg bg-gray-800 text-white font-bold">Annulla</button>
+                <button onclick="goHome()" class="flex-1 py-3 rounded-lg bg-[var(--wrong)] text-white font-bold">Esci</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- DATASET (Extracted from your file) ---
-        // Structure: Topic Name -> Array of Question Objects { root, suffix, true, img? }
-        
-        const database = [
+        const rawDatabase = [
             {
                 id: "strada",
-                title: "01.1 La Strada & Carreggiata",
+                title: "La Strada & Carreggiata",
                 icon: "🛣️",
                 questions: [
-                    { root: "La strada è...", suffix: "...riservata alla circolazione dei soli autoveicoli e motocicli", correct: false },
-                    { root: "La strada è...", suffix: "...aperta alla circolazione dei pedoni, degli animali e dei veicoli", correct: true },
-                    { root: "La strada è...", suffix: "...qualsiasi area asfaltata, limitata lateralmente dagli attraversamenti pedonali", correct: false },
-                    { root: "La strada può...", suffix: "...comprendere le piste ciclabili", correct: true },
-                    { root: "La strada può...", suffix: "...essere suddivisa in carreggiate", correct: true },
-                    { root: "La carreggiata è...", suffix: "...la parte della strada destinata normalmente alla circolazione dei veicoli", correct: true },
-                    { root: "La carreggiata è...", suffix: "...destinata alla sosta di emergenza", correct: false },
-                    { root: "Fanno parte della carreggiata...", suffix: "...le corsie di marcia", correct: true },
-                    { root: "Fanno parte della carreggiata...", suffix: "...i marciapiedi", correct: false },
-                    { root: "Fanno parte della carreggiata...", suffix: "...le corsie di emergenza delle autostrade", correct: false }
+                    { root: "La strada è...", suffix: "riservata alla circolazione dei soli autoveicoli e motocicli", correct: false },
+                    { root: "La strada è...", suffix: "aperta alla circolazione dei pedoni, degli animali e dei veicoli", correct: true },
+                    { root: "La strada è...", suffix: "qualsiasi area asfaltata, limitata lateralmente dagli attraversamenti pedonali", correct: false },
+                    { root: "La strada può...", suffix: "comprendere le piste ciclabili", correct: true },
+                    { root: "La strada può...", suffix: "essere suddivisa in carreggiate", correct: true },
+                    { root: "La carreggiata è...", suffix: "la parte della strada destinata normalmente alla circolazione dei veicoli", correct: true },
+                    { root: "La carreggiata è...", suffix: "destinata alla sosta di emergenza", correct: false },
+                    { root: "Fanno parte della carreggiata...", suffix: "le corsie di marcia", correct: true },
+                    { root: "Fanno parte della carreggiata...", suffix: "i marciapiedi", correct: false },
+                    { root: "Fanno parte della carreggiata...", suffix: "le corsie di emergenza delle autostrade", correct: false }
                 ]
             },
             {
                 id: "corsie",
-                title: "01.1 Corsie & Intersezioni",
+                title: "Corsie & Intersezioni",
                 icon: "🔀",
                 questions: [
-                    { root: "La corsia è...", suffix: "...una parte della carreggiata che consente la circolazione di una sola fila di veicoli", correct: true },
-                    { root: "La corsia può...", suffix: "...essere a doppio senso di circolazione", correct: false },
-                    { root: "La corsia di accelerazione...", suffix: "...serve per entrare correttamente in autostrada", correct: true },
-                    { root: "La corsia di decelerazione...", suffix: "...serve per entrare in una piazzola di sosta", correct: false },
-                    { root: "L'intersezione a raso...", suffix: "...è un'intersezione di due o più strade poste allo stesso livello", correct: true },
-                    { root: "L'intersezione a livelli sfalsati...", suffix: "...facilita la circolazione, perché esclude l'incrocio diretto fra i veicoli", correct: true }
+                    { root: "La corsia è...", suffix: "una parte della carreggiata che consente la circolazione di una sola fila di veicoli", correct: true },
+                    { root: "La corsia può...", suffix: "essere a doppio senso di circolazione", correct: false },
+                    { root: "La corsia di accelerazione...", suffix: "serve per entrare correttamente in autostrada", correct: true },
+                    { root: "La corsia di decelerazione...", suffix: "serve per entrare in una piazzola di sosta", correct: false },
+                    { root: "L'intersezione a raso...", suffix: "è un'intersezione di due o più strade poste allo stesso livello", correct: true },
+                    { root: "L'intersezione a livelli sfalsati...", suffix: "facilita la circolazione, perché esclude l'incrocio diretto fra i veicoli", correct: true }
                 ]
             },
             {
-                id: "segnali_pericolo_1",
-                title: "02.1 Segnali: Deformata & Dossi",
+                id: "segnali_1",
+                title: "Segnali: Deformata & Dossi",
                 icon: "⚠️",
                 questions: [
                     { img: "001 strada deformata.png", root: "Il segnale raffigurato (001)...", suffix: "preannuncia un tratto di strada deformata", correct: true },
@@ -248,8 +276,8 @@
                 ]
             },
             {
-                id: "segnali_pericolo_2",
-                title: "02.1 Segnali: Curve Pericolose",
+                id: "segnali_2",
+                title: "Segnali: Curve Pericolose",
                 icon: "↪️",
                 questions: [
                     { img: "004 curva pericolosa a destra.png", root: "Il segnale raffigurato (004)...", suffix: "preannuncia una curva pericolosa a destra", correct: true },
@@ -264,226 +292,335 @@
                 ]
             },
             {
-                id: "utenti_deboli",
-                title: "01.4 Utenti Deboli",
+                id: "utenti",
+                title: "Utenti Deboli",
                 icon: "🚸",
                 questions: [
-                    { root: "Bisogna usare maggiore prudenza...", suffix: "...nei confronti delle persone anziane", correct: true },
-                    { root: "Quando le persone anziane attraversano...", suffix: "...bisogna suonare il clacson per farle attraversare rapidamente", correct: false },
-                    { root: "Il conducente deve...", suffix: "...fermarsi quando un pedone non vedente col bastone bianco attraversa", correct: true },
-                    { root: "In vicinanza di un attraversamento pedonale...", suffix: "...i bambini potrebbero tornare indietro improvvisamente", correct: true },
-                    { root: "Quando un pedone spinge una carrozzina...", suffix: "...bisogna dargli la precedenza solo se attraversa da sinistra", correct: false }
+                    { root: "Bisogna usare maggiore prudenza...", suffix: "nei confronti delle persone anziane", correct: true },
+                    { root: "Quando le persone anziane attraversano...", suffix: "bisogna suonare il clacson per farle attraversare rapidamente", correct: false },
+                    { root: "Il conducente deve...", suffix: "fermarsi quando un pedone non vedente col bastone bianco attraversa", correct: true },
+                    { root: "In vicinanza di un attraversamento pedonale...", suffix: "i bambini potrebbero tornare indietro improvvisamente", correct: true },
+                    { root: "Quando un pedone spinge una carrozzina...", suffix: "bisogna dargli la precedenza solo se attraversa da sinistra", correct: false }
                 ]
             }
         ];
 
         // --- STATE ---
-        let currentQuiz = [];
-        let currentIndex = 0;
-        let score = 0;
-        let streak = 0;
+        let selectedTopics = new Set();
+        let groupedQuiz = []; // Array of { root: string, img: string, options: Array }
+        let currentGroupIndex = 0;
+        let totalQuestions = 0;
+        let correctAnswersCount = 0;
 
-        // --- DOM ELEMENTS ---
+        // --- DOM REFERENCES ---
         const homeView = document.getElementById('home-view');
         const quizView = document.getElementById('quiz-view');
         const resultsView = document.getElementById('results-view');
         const topicsList = document.getElementById('topics-list');
+        const startBtn = document.getElementById('start-btn');
+        const selectedCountSpan = document.getElementById('selected-count');
         
-        const qTopic = document.getElementById('q-topic');
-        const qCounter = document.getElementById('q-counter');
+        // Quiz Elements
         const qRoot = document.getElementById('q-root');
-        const qSuffix = document.getElementById('q-suffix');
+        const optionsContainer = document.getElementById('options-container');
         const qImageBox = document.getElementById('q-image-box');
         const qImage = document.getElementById('q-image');
         const progressBar = document.getElementById('progress-bar');
-        
-        const feedbackOverlay = document.getElementById('feedback-overlay');
-        const feedbackContent = document.getElementById('feedback-content');
-        const feedbackIcon = document.getElementById('feedback-icon');
-        const feedbackText = document.getElementById('feedback-text');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const backBtn = document.getElementById('back-btn');
+        const statsPill = document.getElementById('stats-pill');
+        const currentScoreSpan = document.getElementById('current-score');
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         function init() {
             renderTopics();
         }
 
         function renderTopics() {
             topicsList.innerHTML = '';
-            database.forEach((topic, index) => {
-                const btn = document.createElement('div');
-                btn.className = 'bg-[#1e1e1e] p-4 rounded-xl border border-gray-800 flex items-center justify-between cursor-pointer hover:border-[var(--neon-green)] transition-all active:scale-95 group';
-                btn.onclick = () => startQuiz(index);
-                btn.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <div class="text-3xl bg-gray-800 w-12 h-12 flex items-center justify-center rounded-full group-hover:bg-[var(--neon-green)] group-hover:text-black transition-colors">
+            rawDatabase.forEach((topic, index) => {
+                const el = document.createElement('div');
+                el.className = 'topic-card p-4 rounded-xl border border-gray-800 bg-[#1e1e1e] flex items-center justify-between cursor-pointer transition-all active:scale-95';
+                el.onclick = () => toggleTopic(index, el);
+                
+                el.innerHTML = `
+                    <div class="flex items-center space-x-4 pointer-events-none">
+                        <div class="text-2xl bg-gray-800 w-10 h-10 flex items-center justify-center rounded-full">
                             ${topic.icon}
                         </div>
                         <div>
-                            <h3 class="font-bold text-lg">${topic.title}</h3>
-                            <p class="text-xs text-gray-500">${topic.questions.length} domande</p>
+                            <h3 class="font-bold text-white text-md leading-none mb-1">${topic.title}</h3>
+                            <p class="text-[10px] text-gray-500 font-mono uppercase">${topic.questions.length} DOMANDE</p>
                         </div>
                     </div>
-                    <div class="text-[var(--neon-green)] opacity-0 group-hover:opacity-100 transition-opacity">
-                        ▶
+                    <div class="check-circle w-6 h-6 rounded-full border border-gray-600 flex items-center justify-center transition-colors pointer-events-none">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                 `;
-                topicsList.appendChild(btn);
+                topicsList.appendChild(el);
             });
         }
 
-        // --- GAME LOGIC ---
-
-        function startQuiz(topicIndex) {
-            // Setup Logic
-            currentQuiz = [...database[topicIndex].questions];
-            // Shuffle questions slightly for variety inside the topic
-            currentQuiz.sort(() => Math.random() - 0.5);
+        function toggleTopic(index, element) {
+            if (selectedTopics.has(index)) {
+                selectedTopics.delete(index);
+                element.classList.remove('active');
+            } else {
+                selectedTopics.add(index);
+                element.classList.add('active');
+            }
             
-            currentIndex = 0;
-            score = 0;
-            streak = 0;
-            updateStats();
+            const count = selectedTopics.size;
+            selectedCountSpan.innerText = count;
+            startBtn.disabled = count === 0;
+            
+            // Animation for button
+            if(count > 0) {
+                startBtn.classList.remove('opacity-50', 'shadow-none');
+            } else {
+                startBtn.classList.add('opacity-50', 'shadow-none');
+            }
+        }
+
+        // --- QUIZ GENERATION LOGIC ---
+
+        function startQuiz() {
+            // 1. Gather all questions from selected topics
+            let pool = [];
+            selectedTopics.forEach(index => {
+                pool = pool.concat(rawDatabase[index].questions);
+            });
+
+            // 2. Group by Root to create "Cards"
+            const groupsMap = {};
+            pool.forEach(q => {
+                // Use root + img as unique key (in case same root has different images)
+                const key = q.root + (q.img || '');
+                if (!groupsMap[key]) {
+                    groupsMap[key] = {
+                        root: q.root,
+                        img: q.img || null,
+                        options: []
+                    };
+                }
+                groupsMap[key].options.push({
+                    text: q.suffix,
+                    correct: q.correct,
+                    id: Math.random().toString(36).substr(2, 9) // unique id for DOM
+                });
+            });
+
+            // 3. Convert Map to Array and Shuffle Groups
+            groupedQuiz = Object.values(groupsMap).sort(() => Math.random() - 0.5);
+
+            // 4. Shuffle options within groups
+            groupedQuiz.forEach(group => {
+                group.options.sort(() => Math.random() - 0.5);
+            });
+
+            // Init state
+            currentGroupIndex = 0;
+            totalQuestions = pool.length; // Total individual sub-questions
+            correctAnswersCount = 0; // Tracking accuracy based on individual choices
 
             // UI Transition
             homeView.classList.add('hidden');
-            resultsView.classList.add('hidden');
             quizView.classList.remove('hidden');
-            
-            qTopic.innerText = database[topicIndex].title;
-            
-            loadCard();
+            resultsView.classList.add('hidden');
+            backBtn.classList.remove('hidden');
+            statsPill.classList.remove('hidden');
+            updateScoreUI();
+
+            renderCard();
         }
 
-        function loadCard() {
-            const question = currentQuiz[currentIndex];
+        function renderCard() {
+            const group = groupedQuiz[currentGroupIndex];
             
-            // Animation reset
-            document.getElementById('card-area').classList.remove('anim-shake');
-            document.getElementById('card-area').classList.add('anim-pop');
-            setTimeout(() => document.getElementById('card-area').classList.remove('anim-pop'), 300);
+            // Reset UI
+            confirmBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+            optionsContainer.innerHTML = '';
+            
+            // Set Headers
+            qRoot.innerText = group.root; // The generic root (small text)
 
-            // Set Content
-            qCounter.innerText = `${currentIndex + 1}/${currentQuiz.length}`;
-            qRoot.innerText = question.root;
-            qSuffix.innerText = question.suffix;
-
-            // Image Handling
-            if (question.img) {
+            // Image
+            if (group.img) {
                 qImageBox.classList.remove('hidden');
-                qImage.src = question.img;
-                qImage.onerror = function() {
-                    this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTU1IiBzdHJva2Utd2lkdGg9IjIiPjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIi8+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiLz48cG9seWxpbmUgcG9pbnRzPSIyMSAxNSAxNiAxMCA1IDIxIi8+PC9zdmc+'; // Fallback icon
-                }
+                qImage.src = group.img;
+                qImage.onerror = () => { qImageBox.classList.add('hidden'); }; // Hide if broken
             } else {
                 qImageBox.classList.add('hidden');
             }
 
-            // Progress Bar
-            const progress = (currentIndex / currentQuiz.length) * 100;
-            progressBar.style.width = `${progress}%`;
+            // Render Options
+            group.options.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'option-item relative p-4 rounded-xl cursor-pointer flex items-start gap-3 active:scale-[0.98]';
+                btn.dataset.id = opt.id;
+                btn.onclick = () => toggleOption(btn);
+                
+                // HTML Content
+                btn.innerHTML = `
+                    <div class="mt-1 w-5 h-5 rounded border border-gray-500 flex-shrink-0 flex items-center justify-center checkbox-ui transition-colors">
+                        <div class="w-3 h-3 bg-[var(--neon-green)] rounded-sm opacity-0 transition-opacity"></div>
+                    </div>
+                    <span class="text-md font-medium text-gray-200 leading-snug select-none">${opt.text}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Progress Bar (Approximate based on cards)
+            const prog = (currentGroupIndex / groupedQuiz.length) * 100;
+            progressBar.style.width = `${prog}%`;
         }
 
-        function handleAnswer(userChoice) {
-            const question = currentQuiz[currentIndex];
-            const isCorrect = (userChoice === question.correct);
+        function toggleOption(btn) {
+            // Prevent toggling if already checked answers
+            if (nextBtn.classList.contains('hidden') === false) return;
 
-            showFeedback(isCorrect);
-
-            if (isCorrect) {
-                score++;
-                streak++;
-            } else {
-                streak = 0;
-                document.getElementById('card-area').classList.add('anim-shake');
-            }
+            btn.classList.toggle('selected');
+            const checkmark = btn.querySelector('.bg-\\[var\\(--neon-green\\)\\]');
             
-            updateStats();
+            if (btn.classList.contains('selected')) {
+                checkmark.classList.remove('opacity-0');
+            } else {
+                checkmark.classList.add('opacity-0');
+            }
+        }
 
-            setTimeout(() => {
-                currentIndex++;
-                if (currentIndex < currentQuiz.length) {
-                    loadCard();
+        function checkAnswers() {
+            const group = groupedQuiz[currentGroupIndex];
+            const domOptions = document.querySelectorAll('.option-item');
+            
+            let allCorrectInThisCard = true;
+
+            domOptions.forEach((btn, index) => {
+                const optData = group.options[index]; // Note: DOM order matches array order here because we didn't re-shuffle DOM
+                const isSelected = btn.classList.contains('selected');
+                
+                // LOGIC:
+                // If Option is True AND Selected -> Good (Green Border)
+                // If Option is True AND NOT Selected -> Missed (Green Dashed Border)
+                // If Option is False AND Selected -> Error (Red Border)
+                // If Option is False AND NOT Selected -> Good (Neutral)
+
+                if (optData.correct) {
+                    if (isSelected) {
+                        btn.classList.add('correct-answer');
+                        correctAnswersCount++;
+                    } else {
+                        btn.classList.add('wrong-answer'); // Should have selected
+                        // allCorrectInThisCard = false; // Optional strict scoring
+                    }
                 } else {
-                    showResults();
+                    if (isSelected) {
+                        btn.classList.add('wrong-selected');
+                        correctAnswersCount--; // Penalty for guessing wrong
+                    }
                 }
-            }, 1200); // Wait for feedback animation
+                
+                // Disable clicking
+                btn.onclick = null;
+                btn.classList.remove('active:scale-[0.98]');
+            });
+
+            updateScoreUI();
+
+            // Swap Buttons
+            confirmBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
         }
 
-        function showFeedback(isCorrect) {
-            feedbackOverlay.classList.remove('hidden');
-            
-            // Allow reflow
-            void feedbackContent.offsetWidth;
-            
-            feedbackContent.classList.remove('scale-0');
-            feedbackContent.classList.add('scale-100');
-
-            if (isCorrect) {
-                feedbackIcon.innerText = getRandomItem(['🔥', '✨', '💎', '🚀', '✅']);
-                feedbackText.innerText = getRandomItem(['SLAY!', 'CORRETTO', 'GENIUS', 'TOP']);
-                feedbackText.className = 'text-3xl font-bold text-[var(--correct)]';
+        function nextCard() {
+            currentGroupIndex++;
+            if (currentGroupIndex < groupedQuiz.length) {
+                renderCard();
             } else {
-                feedbackIcon.innerText = getRandomItem(['💀', '🛑', '👀', '❌']);
-                feedbackText.innerText = getRandomItem(['NOPE', 'SBAGLIATO', 'OPS...', 'RIP']);
-                feedbackText.className = 'text-3xl font-bold text-[var(--wrong)]';
+                showResults();
             }
+        }
 
-            setTimeout(() => {
-                feedbackContent.classList.remove('scale-100');
-                feedbackContent.classList.add('scale-0');
-                setTimeout(() => {
-                    feedbackOverlay.classList.add('hidden');
-                }, 200);
-            }, 900);
+        function updateScoreUI() {
+            // Simple score tracking for the header
+            currentScoreSpan.innerText = Math.max(0, correctAnswersCount);
+        }
+
+        // --- NAVIGATION & RESULTS ---
+
+        function confirmExit() {
+            document.getElementById('exit-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('exit-modal').classList.add('hidden');
+        }
+
+        function goHome() {
+            document.getElementById('exit-modal').classList.add('hidden');
+            quizView.classList.add('hidden');
+            resultsView.classList.add('hidden');
+            backBtn.classList.add('hidden');
+            statsPill.classList.add('hidden');
+            homeView.classList.remove('hidden');
+            
+            // Optional: reset selections? No, keep them for easier replay.
         }
 
         function showResults() {
             quizView.classList.add('hidden');
             resultsView.classList.remove('hidden');
+            backBtn.classList.add('hidden');
 
-            const percentage = Math.round((score / currentQuiz.length) * 100);
-            document.getElementById('final-score').innerText = `${percentage}%`;
+            // Calculate percentage based on max possible score (total True statements)
+            // Wait, to be fair, let's just use raw percentage of decisions made?
+            // Let's use: (Correct Selections) / (Total True Statements available)
             
-            const circle = document.getElementById('score-circle');
-            const circumference = 2 * Math.PI * 40; // r=40
-            const offset = circumference - (percentage / 100) * circumference;
-            circle.style.strokeDashoffset = offset;
+            // Recalculate Totals for accuracy
+            let totalTrueStatements = 0;
+            groupedQuiz.forEach(g => {
+                g.options.forEach(o => {
+                    if(o.correct) totalTrueStatements++;
+                });
+            });
 
-            // Color code the result
-            if (percentage >= 90) {
-                document.getElementById('result-title').innerText = "PATENTE PRESA! 🚗";
-                document.getElementById('result-title').className = "text-3xl font-bold text-[var(--neon-green)]";
-                document.getElementById('result-msg').innerText = "Sei un mostro sacro del codice della strada.";
-            } else if (percentage >= 70) {
-                document.getElementById('result-title').innerText = "Promosso (ma occhio)";
-                document.getElementById('result-title').className = "text-3xl font-bold text-yellow-400";
-                document.getElementById('result-msg').innerText = "Buono, ma ripassa i segnali più difficili.";
-            } else {
-                document.getElementById('result-title').innerText = "Bocciato 💀";
-                document.getElementById('result-title').className = "text-3xl font-bold text-[var(--wrong)]";
-                document.getElementById('result-msg').innerText = "Meglio se ti fai un altro giro di ripasso.";
+            let finalPercent = 0;
+            if (totalTrueStatements > 0) {
+                finalPercent = Math.round((Math.max(0, correctAnswersCount) / totalTrueStatements) * 100);
             }
-        }
+            if (finalPercent > 100) finalPercent = 100; // Just in case
 
-        function goHome() {
-            resultsView.classList.add('hidden');
-            homeView.classList.remove('hidden');
-        }
+            document.getElementById('final-score-val').innerText = finalPercent + "%";
+            
+            // Ring Animation
+            const circle = document.getElementById('score-ring');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (finalPercent / 100) * circumference;
+            
+            setTimeout(() => {
+                circle.style.strokeDashoffset = offset;
+            }, 100);
 
-        function updateStats() {
-            document.getElementById('streak-counter').innerText = streak;
-            document.getElementById('score-counter').innerText = score;
-            // Only show stats in quiz mode
-            const statsDisplay = document.getElementById('stats-display');
-            if (!homeView.classList.contains('hidden')) {
-                statsDisplay.classList.add('hidden');
+            // Message
+            const msgEl = document.getElementById('result-msg');
+            const titleEl = document.getElementById('result-title');
+            
+            if (finalPercent >= 90) {
+                titleEl.innerText = "LEGENDARY! 🏆";
+                titleEl.style.color = "var(--neon-green)";
+                msgEl.innerText = "Hai un occhio bionico per i quiz. Sei pronto.";
+            } else if (finalPercent >= 70) {
+                titleEl.innerText = "GOOD JOB! 👍";
+                titleEl.style.color = "white";
+                msgEl.innerText = "Ci sei quasi. Affina la tecnica sulle risposte multiple.";
             } else {
-                statsDisplay.classList.remove('hidden');
+                titleEl.innerText = "OUCH... 💀";
+                titleEl.style.color = "var(--wrong)";
+                msgEl.innerText = "Troppi errori. Ricorda: leggi bene la frase grande, ignora la radice!";
             }
-        }
-
-        function getRandomItem(arr) {
-            return arr[Math.floor(Math.random() * arr.length)];
         }
 
         // Run
