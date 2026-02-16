@@ -12,7 +12,6 @@
     <style>
         :root {
             --bg-dark: #09090b;
-            --primary: #8b5cf6;
             --header-h: 60px;
             --nav-h: 80px;
         }
@@ -23,36 +22,31 @@
             color: #ffffff;
             height: 100dvh;
             overflow: hidden;
-            /* Disabilita zoom e comportamenti touch standard per un feeling da app nativa */
             touch-action: none; 
             user-select: none;
             -webkit-user-select: none;
         }
 
-        /* Utility */
         .glass-panel {
-            background: rgba(30, 30, 35, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(30, 30, 35, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Animations */
         @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
         
         .anim-enter { animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .anim-shake { animation: shake 0.3s ease-in-out; }
 
-        /* Button Interaction */
         .btn-game {
             transform: scale(1);
             transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.1s;
             cursor: pointer;
-            /* Area di tocco sicura */
             touch-action: manipulation;
         }
         .btn-game:active {
@@ -60,19 +54,133 @@
             filter: brightness(1.2);
         }
 
-        /* Signal Graphics */
+        /* SVG Styles */
         .traffic-sign-svg {
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-            max-height: 120px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+            height: 100px;
             width: auto;
             margin: 0 auto;
+            display: block;
         }
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-md mx-auto bg-[#09090b] shadow-2xl relative">
 
-    <!-- DATA SOURCE (Nuovo Listato + Immagini Mappate) -->
-    <div id="raw-data" style="display:none;">
+    <!-- HEADER -->
+    <header class="flex-none h-[var(--header-h)] flex justify-between items-center px-6 bg-[#09090b] z-20 border-b border-white/5">
+        <div>
+            <h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 tracking-tight">
+                Patente Z 2026
+            </h1>
+            <p id="header-subtitle" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Mix Mode</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 rounded-full border border-gray-800">
+                <span class="text-green-500 text-sm">🔥</span>
+                <span id="streak-display" class="font-bold text-sm text-gray-200">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 relative w-full overflow-hidden">
+        
+        <!-- VIEW: GAME -->
+        <div id="view-game" class="absolute inset-0 flex flex-col px-4 pb-2 z-10 bg-[#09090b]">
+            
+            <!-- Progress -->
+            <div class="flex-none h-4 flex items-center justify-center mt-3 mb-1">
+                 <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Card Container -->
+            <div class="flex-1 flex flex-col justify-center min-h-0 py-2 relative">
+                <div id="card-container" class="glass-panel w-full h-full rounded-3xl p-4 flex flex-col shadow-xl border-t border-white/10 relative overflow-hidden text-center justify-between">
+                    
+                    <!-- Content Wrapper to center everything nicely -->
+                    <div class="flex flex-col flex-1">
+                        
+                        <!-- Image Area (Fixed Height) -->
+                        <div id="card-image-wrapper" class="flex-none h-[110px] flex items-center justify-center mb-2 mt-2 hidden">
+                            <!-- SVG Injected Here -->
+                        </div>
+
+                        <!-- Root Phrase Area -->
+                        <div class="flex-none px-2 pb-3 border-b border-white/5 flex items-center justify-center min-h-[50px]">
+                            <p id="card-root" class="text-sm md:text-base font-medium text-gray-400 leading-snug select-none">
+                                Caricamento dati...
+                            </p>
+                        </div>
+
+                        <!-- Completion Phrase Area (Grow to fill) -->
+                        <div class="flex-1 flex items-center justify-center px-2 py-2 overflow-y-auto no-scrollbar">
+                            <p id="card-completion" class="text-lg md:text-2xl font-bold text-white leading-snug select-none">
+                                --
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Overlay -->
+                    <div id="feedback-overlay" class="absolute inset-0 z-50 hidden flex-col items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl">
+                        <div id="feedback-icon" class="text-7xl mb-4 transform transition-transform duration-300 scale-0"></div>
+                        <div id="feedback-text" class="text-2xl font-bold text-white tracking-wide"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex-none h-24 grid grid-cols-2 gap-4 pb-1 pt-2">
+                <button onclick="app.checkAnswer(false)" class="btn-game rounded-2xl bg-[#2c1517] border border-red-900/40 text-red-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-red-900/30">
+                    <i class="ph-bold ph-x text-3xl mb-1 pointer-events-none"></i>
+                    <span class="pointer-events-none">FALSO</span>
+                </button>
+                <button onclick="app.checkAnswer(true)" class="btn-game rounded-2xl bg-[#132e21] border border-green-900/40 text-green-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-green-900/30">
+                    <i class="ph-bold ph-check text-3xl mb-1 pointer-events-none"></i>
+                    <span class="pointer-events-none">VERO</span>
+                </button>
+            </div>
+            
+            <!-- Lesson Info Footer -->
+            <div id="lesson-info" class="flex-none text-center text-[10px] text-gray-600 font-mono truncate h-4 mb-1 px-4"></div>
+        </div>
+
+        <!-- VIEW: SELECTION MENU -->
+        <div id="view-selection" class="absolute inset-0 flex flex-col px-6 bg-[#09090b] transform translate-y-full transition-transform duration-300 z-20">
+            <h2 class="text-xl font-bold text-white mb-2 mt-6 flex-none">Argomenti</h2>
+            <div id="selection-list" class="flex-1 overflow-y-auto no-scrollbar space-y-3 pb-24 pr-2"></div>
+            <div class="flex-none h-24 w-full pb-6 pt-2 bg-[#09090b]">
+                <button onclick="app.startStudyMode()" class="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl active:scale-95 transition-transform">
+                    AVVIA RIPASSO
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: PATTERN WALL -->
+        <div id="view-pattern" class="absolute inset-0 px-6 bg-[#09090b] hidden overflow-y-auto no-scrollbar z-10 pt-4 pb-24"></div>
+
+    </main>
+
+    <!-- NAVIGATION -->
+    <nav class="flex-none h-[var(--nav-h)] bg-[#09090b] border-t border-white/5 flex items-start justify-around pt-4 z-30 pb-safe">
+        <button onclick="app.setMode('mix')" id="nav-mix" class="flex flex-col items-center gap-1 text-purple-400 w-20 active:scale-90 transition-transform">
+            <i class="ph-fill ph-shuffle text-2xl"></i>
+            <span class="text-[10px] font-bold">Mix</span>
+        </button>
+        <button onclick="app.toggleSelectionView()" id="nav-study" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
+            <i class="ph-fill ph-student text-2xl"></i>
+            <span class="text-[10px] font-bold">Studio</span>
+        </button>
+        <button onclick="app.setMode('pattern')" id="nav-pattern" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
+            <i class="ph-fill ph-wall text-2xl"></i>
+            <span class="text-[10px] font-bold">Muro</span>
+        </button>
+    </nav>
+
+    <script>
+        // --- DATA INJECTION (Sicuro) ---
+        const DATA_SOURCE = `
 Listato A B 2026
 Metodo: Pattern Matching
 Lezione: 01.1 Definizioni stradali e di traffico
@@ -324,7 +432,7 @@ Spostare la segnaletica...
 È vietato...
 [ V ] ...spostare o imbrattare la segnaletica stradale
 [ V ] ...rimuovere la segnaletica stradale
-[ V ] … danneggiare le opere e gli impianti stradali
+[ V ] ... danneggiare le opere e gli impianti stradali
 [ V ] ...sporcare la carreggiata depositando rifiuti
 [ V ] ...gettare oggetti e rifiuti dai veicoli in movimento
 [ F ] ...parcheggiare nelle zone residenziali
@@ -901,405 +1009,285 @@ In presenza del segnale raffigurato (007)...
 [ V ] ...si deve circolare il più vicino possibile al margine destro della carreggiata, su strada a due sole corsie e a doppio senso di circolazione
 [ F ] ...è necessario tenere una velocità moderata esclusivamente nella prima curva
 [ F ] ...posto su strade a due corsie e a doppio senso, è consentito sorpassare un veicolo molto lento
-    </div>
+`;
 
-    <!-- HEADER -->
-    <header class="flex-none h-[var(--header-h)] flex justify-between items-center px-6 bg-[#09090b] z-20 border-b border-white/5">
-        <div>
-            <h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 tracking-tight">
-                Patente Z 2026
-            </h1>
-            <p id="header-subtitle" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Mix Mode</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 rounded-full border border-gray-800">
-                <span class="text-green-500 text-sm">🔥</span>
-                <span id="streak-display" class="font-bold text-sm text-gray-200">0</span>
-            </div>
-        </div>
-    </header>
+        const app = {
+            data: { lessons: [] },
+            queue: [],
+            index: 0,
+            streak: 0,
+            busy: false,
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 relative w-full overflow-hidden">
-        
-        <!-- VIEW: GAME -->
-        <div id="view-game" class="absolute inset-0 flex flex-col px-4 pb-2 z-10">
-            
-            <!-- Progress -->
-            <div class="flex-none h-4 flex items-center justify-center mt-2">
-                 <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                    <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-0 transition-all duration-300"></div>
-                </div>
-            </div>
+            // SVG Generators
+            getSignalSVG: function(code) {
+                const base = `<svg viewBox="0 0 100 100" class="traffic-sign-svg"><path d="M50 5 L95 90 L5 90 Z" fill="white" stroke="#cc0000" stroke-width="8" stroke-linejoin="round"/>`;
+                const content = {
+                    '001': '<path d="M25 70 Q35 50 50 70 Q65 50 75 70" fill="none" stroke="black" stroke-width="8" stroke-linecap="round" />', // Deformata (bumps line)
+                    '002': '<path d="M25 70 Q50 30 75 70" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />', // Dosso (Single bump)
+                    '003': '<path d="M25 50 Q50 90 75 50" fill="none" stroke="black" stroke-width="12" stroke-linecap="round" />', // Cunetta (Dip)
+                    '004': '<path d="M40 75 V55 Q40 40 70 45 L65 35 L80 50 L65 65 L70 55 Q50 50 50 75" fill="black" />', // Curva Dx
+                    '005': '<path d="M60 75 V55 Q60 40 30 45 L35 35 L20 50 L35 65 L30 55 Q50 50 50 75" fill="black" />', // Curva Sx
+                    '006': '<path d="M35 75 V60 Q35 45 50 45 Q65 45 65 35 L55 35 L70 20 L85 35 L75 35 Q75 55 50 55 Q45 55 45 75" fill="black" />', // Doppia Dx
+                    '007': '<path d="M65 75 V60 Q65 45 50 45 Q35 45 35 35 L45 35 L30 20 L15 35 L25 35 Q25 55 50 55 Q55 55 55 75" fill="black" />' // Doppia Sx
+                };
+                return content[code] ? base + content[code] + '</svg>' : null;
+            },
 
-            <!-- Card Area -->
-            <div class="flex-1 flex flex-col justify-center min-h-0 py-2 relative">
-                <div id="card-container" class="glass-panel w-full h-full rounded-3xl p-6 flex flex-col shadow-xl border-t border-white/10 relative overflow-hidden text-center">
-                    
-                    <!-- Dynamic Signal/Root Area -->
-                    <div class="flex-none w-full border-b border-white/5 pb-4 flex flex-col items-center justify-center min-h-[60px]">
-                        <div id="card-image-container" class="mb-2 hidden"></div>
-                        <p id="card-root" class="text-sm md:text-base font-medium text-gray-400 leading-snug select-none">
-                            Caricamento...
-                        </p>
-                    </div>
+            cleanText: function(t) { return t.replace(/…/g, '...').replace(/•/g, '').trim(); },
 
-                    <!-- Completion Phrase -->
-                    <div class="flex-1 flex items-center justify-center w-full py-2 overflow-y-auto no-scrollbar">
-                        <p id="card-completion" class="text-lg md:text-xl font-bold text-white leading-snug select-none">
-                            --
-                        </p>
-                    </div>
-
-                    <!-- Feedback Overlay -->
-                    <div id="feedback-overlay" class="absolute inset-0 z-50 hidden flex-col items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-200 pointer-events-none">
-                        <div id="feedback-icon" class="text-7xl mb-4 transform transition-transform duration-300 scale-0"></div>
-                        <div id="feedback-text" class="text-2xl font-bold text-white tracking-wide"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Controls (Fixed Bottom) -->
-            <div class="flex-none h-24 grid grid-cols-2 gap-4 pb-1 pt-2">
-                <button onclick="checkAnswer(false)" class="btn-game rounded-2xl bg-[#2c1517] border border-red-900/40 text-red-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-red-900/30">
-                    <i class="ph-bold ph-x text-3xl mb-1 pointer-events-none"></i>
-                    <span class="pointer-events-none">FALSO</span>
-                </button>
-                <button onclick="checkAnswer(true)" class="btn-game rounded-2xl bg-[#132e21] border border-green-900/40 text-green-500 font-bold text-xl flex flex-col items-center justify-center shadow-lg active:bg-green-900/30">
-                    <i class="ph-bold ph-check text-3xl mb-1 pointer-events-none"></i>
-                    <span class="pointer-events-none">VERO</span>
-                </button>
-            </div>
-            
-            <!-- Lesson Info -->
-            <div id="lesson-info" class="flex-none text-center text-[10px] text-gray-600 font-mono truncate h-4 mb-1"></div>
-        </div>
-
-        <!-- VIEW: SELECTION MENU -->
-        <div id="view-selection" class="absolute inset-0 flex flex-col px-6 bg-[#09090b] transform translate-y-full transition-transform duration-300 z-20">
-            <h2 class="text-xl font-bold text-white mb-2 mt-6 flex-none">Argomenti da ripassare</h2>
-            <div id="selection-list" class="flex-1 overflow-y-auto no-scrollbar space-y-3 pb-24 pr-2"></div>
-            <div class="flex-none h-24 w-full pb-6 pt-2 bg-[#09090b]">
-                <button onclick="startStudyMode()" class="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl active:scale-95 transition-transform">
-                    AVVIA RIPASSO
-                </button>
-            </div>
-        </div>
-
-        <!-- VIEW: PATTERN WALL -->
-        <div id="view-pattern" class="absolute inset-0 px-6 bg-[#09090b] hidden overflow-y-auto no-scrollbar z-10 pt-4 pb-24">
-            <!-- Content Injected Here -->
-        </div>
-
-    </main>
-
-    <!-- NAVIGATION -->
-    <nav class="flex-none h-[var(--nav-h)] bg-[#09090b] border-t border-white/5 flex items-start justify-around pt-4 z-30 pb-safe">
-        <button onclick="setMode('mix')" id="nav-mix" class="flex flex-col items-center gap-1 text-purple-400 w-20 active:scale-90 transition-transform">
-            <i class="ph-fill ph-shuffle text-2xl"></i>
-            <span class="text-[10px] font-bold">Mix</span>
-        </button>
-        <button onclick="toggleSelectionView()" id="nav-study" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
-            <i class="ph-fill ph-student text-2xl"></i>
-            <span class="text-[10px] font-bold">Studio</span>
-        </button>
-        <button onclick="setMode('pattern')" id="nav-pattern" class="flex flex-col items-center gap-1 text-gray-500 w-20 active:scale-90 transition-transform">
-            <i class="ph-fill ph-wall text-2xl"></i>
-            <span class="text-[10px] font-bold">Muro</span>
-        </button>
-    </nav>
-
-    <script>
-        // --- SVG GRAPHICS GENERATOR ---
-        // Genera i segnali stradali dinamicamente
-        function getSignalSVG(code) {
-            const base = `<svg viewBox="0 0 100 100" class="traffic-sign-svg"><path d="M50 5 L95 90 L5 90 Z" fill="white" stroke="#cc0000" stroke-width="10" stroke-linejoin="round"/>`;
-            const content = {
-                '001': '<path d="M25 65 Q35 45 50 65 Q65 45 75 65 V80 H25 Z" fill="black" />', // Deformata
-                '002': '<path d="M20 70 H80 V60 H70 Q50 30 30 60 H20 Z" fill="black" />', // Dosso
-                '003': '<path d="M20 60 H30 Q50 80 70 60 H80 V70 H20 Z" fill="black" />', // Cunetta
-                '004': '<path d="M40 70 V55 Q40 40 60 45 L58 40 L70 50 L58 60 L60 55 Q48 50 48 70 Z" fill="black" />', // Curva Dx
-                '005': '<path d="M60 70 V55 Q60 40 40 45 L42 40 L30 50 L42 60 L40 55 Q52 50 52 70 Z" fill="black" />', // Curva Sx
-                '006': '<path d="M35 70 V60 Q35 50 50 50 Q65 50 65 40 V35 L58 35 L70 25 L82 35 L75 35 V40 Q75 60 50 60 Q45 60 45 70 Z" fill="black" />', // Doppia Dx
-                '007': '<path d="M65 70 V60 Q65 50 50 50 Q35 50 35 40 V35 L42 35 L30 25 L18 35 L25 35 V40 Q25 60 50 60 Q55 60 55 70 Z" fill="black" />' // Doppia Sx
-            };
-            
-            return content[code] ? base + content[code] + '</svg>' : null;
-        }
-
-        // --- CORE LOGIC ---
-        const rawText = document.getElementById('raw-data').innerText;
-        let appData = { lessons: [] };
-        let activeQueue = [];
-        let currentIndex = 0;
-        let streak = 0;
-        let isProcessing = false;
-
-        function cleanText(text) {
-            return text.replace(/…/g, '...').replace(/•/g, '').trim();
-        }
-
-        function parseData() {
-            const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            let lesson = null, topic = null, root = null;
-            
-            lines.forEach(line => {
-                if (line.startsWith('Lezione:')) {
-                    lesson = { id: appData.lessons.length, title: cleanText(line.replace('Lezione:', '')), topics: [] };
-                    appData.lessons.push(lesson);
-                    topic = null; root = null;
-                } else if (line.startsWith('Argomento:')) {
-                    if (!lesson) { 
-                        lesson = { id: appData.lessons.length, title: "Generale", topics: [] };
-                        appData.lessons.push(lesson);
+            parseData: function() {
+                const lines = DATA_SOURCE.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                let lesson = null, topic = null, root = null;
+                
+                lines.forEach(line => {
+                    if (line.startsWith('Lezione:')) {
+                        lesson = { id: this.data.lessons.length, title: this.cleanText(line.replace('Lezione:', '')), topics: [] };
+                        this.data.lessons.push(lesson);
+                        topic = null; root = null;
+                    } else if (line.startsWith('Argomento:')) {
+                        if (!lesson) { 
+                            lesson = { id: 0, title: "Generale", topics: [] };
+                            this.data.lessons.push(lesson);
+                        }
+                        const imgMatch = line.match(/\((\d{3})\)/);
+                        const imgCode = imgMatch ? imgMatch[1] : null;
+                        const titleClean = this.cleanText(line.replace('Argomento:', '').replace(/\(\d{3}\)/, ''));
+                        topic = { title: titleClean, imageCode: imgCode, roots: [] };
+                        lesson.topics.push(topic);
+                        root = null;
+                    } else if (line.startsWith('[ V ]') || line.startsWith('[ F ]')) {
+                        if (root) {
+                            const isTrue = line.startsWith('[ V ]');
+                            const text = this.cleanText(line.substring(5));
+                            root.items.push({ text, isTrue });
+                        }
+                    } else if (!line.startsWith('Listato') && !line.startsWith('Metodo:')) {
+                        if (topic) {
+                            root = { text: this.cleanText(line), items: [] };
+                            topic.roots.push(root);
+                        }
                     }
-                    // Check for image code (e.g., "(001)")
-                    const imgMatch = line.match(/\((\d{3})\)/);
-                    const imgCode = imgMatch ? imgMatch[1] : null;
-                    const titleClean = cleanText(line.replace('Argomento:', '').replace(/\(\d{3}\)/, ''));
+                });
+            },
 
-                    topic = { title: titleClean, imageCode: imgCode, roots: [] };
-                    lesson.topics.push(topic);
-                    root = null;
-                } else if (line.startsWith('[ V ]') || line.startsWith('[ F ]')) {
-                    if (root) {
-                        const isTrue = line.startsWith('[ V ]');
-                        const text = cleanText(line.substring(5));
-                        root.items.push({ text, isTrue });
-                    }
-                } else if (!line.startsWith('Listato') && !line.startsWith('Metodo:')) {
-                    if (topic) {
-                        // Inherit image code from topic if present
-                        root = { text: cleanText(line), items: [] };
-                        topic.roots.push(root);
-                    }
-                }
-            });
-        }
+            initGame: function(mode, selectedIds = []) {
+                this.queue = [];
+                this.index = 0;
+                this.streak = 0;
+                this.busy = false;
+                document.getElementById('streak-display').innerText = '0';
 
-        function initGame(mode, selectedLessonIds = []) {
-            activeQueue = [];
-            currentIndex = 0;
-            streak = 0;
-            updateStreak();
-            
-            // Build Queue
-            const lessonsToProcess = mode === 'mix' 
-                ? appData.lessons 
-                : appData.lessons.filter(l => selectedLessonIds.includes(l.id));
-
-            lessonsToProcess.forEach(l => {
-                l.topics.forEach(t => {
-                    t.roots.forEach(r => {
-                        r.items.forEach(i => {
-                            activeQueue.push({ 
-                                lesson: l.title, 
-                                topic: t.title, 
-                                root: r.text, 
-                                completion: i.text, 
-                                isTrue: i.isTrue,
-                                imageCode: t.imageCode // Pass image code
+                const lessons = mode === 'mix' ? this.data.lessons : this.data.lessons.filter(l => selectedIds.includes(l.id));
+                
+                lessons.forEach(l => {
+                    l.topics.forEach(t => {
+                        t.roots.forEach(r => {
+                            r.items.forEach(i => {
+                                this.queue.push({
+                                    lesson: l.title, topic: t.title,
+                                    root: r.text, completion: i.text, isTrue: i.isTrue,
+                                    imageCode: t.imageCode
+                                });
                             });
                         });
                     });
                 });
-            });
 
-            if (mode === 'mix') activeQueue.sort(() => Math.random() - 0.5);
-            
-            if(activeQueue.length > 0) {
-                renderCard();
-            } else {
-                alert("Seleziona almeno un argomento!");
-            }
-        }
+                if (mode === 'mix') this.queue.sort(() => Math.random() - 0.5);
 
-        function renderCard() {
-            if (currentIndex >= activeQueue.length) {
-                document.getElementById('card-completion').innerText = "Hai completato tutto!";
-                document.getElementById('card-root').innerText = "Ottimo lavoro 🎉";
-                document.getElementById('card-image-container').classList.add('hidden');
-                confetti({ particleCount: 150, spread: 80 });
-                return;
-            }
-            const item = activeQueue[currentIndex];
-            
-            // Image Handling
-            const imgContainer = document.getElementById('card-image-container');
-            if (item.imageCode) {
-                const svg = getSignalSVG(item.imageCode);
-                if (svg) {
-                    imgContainer.innerHTML = svg;
-                    imgContainer.classList.remove('hidden');
+                if (this.queue.length > 0) {
+                    this.renderCard();
                 } else {
-                    imgContainer.classList.add('hidden');
+                    document.getElementById('card-root').innerText = "Nessuna domanda caricata.";
+                    document.getElementById('card-completion').innerText = "Riprova.";
                 }
-            } else {
-                imgContainer.classList.add('hidden');
-            }
+            },
 
-            document.getElementById('card-root').innerText = item.root;
-            
-            const compEl = document.getElementById('card-completion');
-            compEl.style.animation = 'none';
-            compEl.offsetHeight; 
-            compEl.style.animation = null; 
-            
-            compEl.innerText = item.completion;
-            compEl.classList.add('anim-enter');
-            
-            document.getElementById('lesson-info').innerText = item.topic;
-            document.getElementById('progress-bar').style.width = `${((currentIndex) / activeQueue.length) * 100}%`;
-        }
+            renderCard: function() {
+                if (this.index >= this.queue.length) {
+                    document.getElementById('card-completion').innerText = "Hai finito!";
+                    document.getElementById('card-root').innerText = "Ottimo lavoro 🎉";
+                    document.getElementById('card-image-wrapper').classList.add('hidden');
+                    confetti();
+                    return;
+                }
 
-        function checkAnswer(userChoice) {
-            if (isProcessing || currentIndex >= activeQueue.length) return;
-            isProcessing = true;
+                const item = this.queue[this.index];
+                const imgWrap = document.getElementById('card-image-wrapper');
+                
+                if (item.imageCode) {
+                    const svg = this.getSignalSVG(item.imageCode);
+                    if (svg) {
+                        imgWrap.innerHTML = svg;
+                        imgWrap.classList.remove('hidden');
+                    } else {
+                        imgWrap.classList.add('hidden');
+                    }
+                } else {
+                    imgWrap.classList.add('hidden');
+                }
 
-            const item = activeQueue[currentIndex];
-            const isCorrect = userChoice === item.isTrue;
-            const overlay = document.getElementById('feedback-overlay');
-            const icon = document.getElementById('feedback-icon');
-            const text = document.getElementById('feedback-text');
-            const container = document.getElementById('card-container');
+                document.getElementById('card-root').innerText = item.root;
+                const compEl = document.getElementById('card-completion');
+                
+                // Anim reset
+                compEl.style.animation = 'none';
+                compEl.offsetHeight; 
+                compEl.style.animation = null; 
+                compEl.innerText = item.completion;
+                compEl.classList.add('anim-enter');
 
-            overlay.classList.remove('hidden');
-            overlay.classList.add('flex');
+                document.getElementById('lesson-info').innerText = item.topic;
+                document.getElementById('progress-bar').style.width = `${(this.index / this.queue.length) * 100}%`;
+            },
 
-            if (isCorrect) {
-                streak++;
-                confetti({ particleCount: 20, spread: 40, origin: { y: 0.7 }, startVelocity: 20 });
-                overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-green-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
-                icon.innerHTML = '<i class="ph-fill ph-check-circle text-green-300"></i>';
-                text.innerText = "ESATTO!";
-                text.className = "text-2xl font-bold text-green-300 tracking-wider";
-            } else {
-                streak = 0;
-                container.classList.add('anim-shake');
-                overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
-                icon.innerHTML = '<i class="ph-fill ph-x-circle text-red-300"></i>';
-                text.innerText = item.isTrue ? "ERA VERO" : "ERA FALSO";
-                text.className = "text-2xl font-bold text-red-300 tracking-wider";
-                setTimeout(() => container.classList.remove('anim-shake'), 400);
-            }
-            
-            updateStreak();
-            requestAnimationFrame(() => { icon.classList.remove('scale-0'); icon.classList.add('scale-100'); });
+            checkAnswer: function(choice) {
+                if (this.busy || this.index >= this.queue.length) return;
+                this.busy = true;
 
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                overlay.classList.remove('flex');
-                icon.classList.add('scale-0');
-                icon.classList.remove('scale-100');
-                currentIndex++;
-                renderCard();
-                isProcessing = false;
-            }, 800);
-        }
+                const item = this.queue[this.index];
+                const isCorrect = choice === item.isTrue;
+                const overlay = document.getElementById('feedback-overlay');
+                const icon = document.getElementById('feedback-icon');
+                const text = document.getElementById('feedback-text');
+                const container = document.getElementById('card-container');
 
-        function updateStreak() { document.getElementById('streak-display').innerText = streak; }
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
 
-        function setMode(mode) {
-            document.getElementById('view-selection').style.transform = "translateY(100%)";
-            if (mode === 'pattern') {
-                document.getElementById('view-game').classList.add('hidden');
-                document.getElementById('view-pattern').classList.remove('hidden');
-                renderPattern();
-            } else {
-                document.getElementById('view-pattern').classList.add('hidden');
-                document.getElementById('view-game').classList.remove('hidden');
-                if (mode === 'mix') initGame('mix');
-            }
-            
-            document.querySelectorAll('nav button').forEach(b => {
-                b.classList.remove('text-purple-400');
-                b.classList.add('text-gray-500');
-            });
-            
-            const btnId = mode === 'mix' ? 'nav-mix' : (mode === 'pattern' ? 'nav-pattern' : 'nav-study');
-            document.getElementById(btnId).classList.add('text-purple-400');
-            document.getElementById(btnId).classList.remove('text-gray-500');
-        }
+                if (isCorrect) {
+                    this.streak++;
+                    confetti({ particleCount: 20, spread: 40, origin: { y: 0.7 } });
+                    overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-green-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
+                    icon.innerHTML = '<i class="ph-fill ph-check-circle text-green-300"></i>';
+                    text.innerText = "ESATTO!";
+                    text.className = "text-2xl font-bold text-green-300 tracking-wider";
+                } else {
+                    this.streak = 0;
+                    container.classList.add('anim-shake');
+                    overlay.className = "absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-900/90 backdrop-blur-sm transition-opacity duration-200 pointer-events-none rounded-3xl";
+                    icon.innerHTML = '<i class="ph-fill ph-x-circle text-red-300"></i>';
+                    text.innerText = item.isTrue ? "ERA VERO" : "ERA FALSO";
+                    text.className = "text-2xl font-bold text-red-300 tracking-wider";
+                    setTimeout(() => container.classList.remove('anim-shake'), 400);
+                }
 
-        function toggleSelectionView() {
-            const el = document.getElementById('view-selection');
-            const isOpen = el.style.transform === "translateY(0%)";
-            
-            if (!isOpen) {
-                renderSelectionList();
-                el.style.transform = "translateY(0%)";
+                document.getElementById('streak-display').innerText = this.streak;
+                requestAnimationFrame(() => { icon.classList.remove('scale-0'); icon.classList.add('scale-100'); });
+
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                    icon.classList.add('scale-0');
+                    icon.classList.remove('scale-100');
+                    this.index++;
+                    this.renderCard();
+                    this.busy = false;
+                }, 800);
+            },
+
+            setMode: function(mode) {
+                document.getElementById('view-selection').style.transform = "translateY(100%)";
+                
                 document.querySelectorAll('nav button').forEach(b => {
                     b.classList.remove('text-purple-400');
                     b.classList.add('text-gray-500');
                 });
-                document.getElementById('nav-study').classList.add('text-purple-400');
-            } else {
-                el.style.transform = "translateY(100%)";
-                setMode('mix'); 
-            }
-        }
 
-        function renderSelectionList() {
-            const container = document.getElementById('selection-list');
-            container.innerHTML = '';
-            appData.lessons.forEach(l => {
-                container.innerHTML += `
-                    <label class="custom-checkbox flex items-center p-4 rounded-xl bg-[#18181b] border border-white/5 cursor-pointer active:scale-[0.98] transition-transform shadow-sm">
-                        <input type="checkbox" value="${l.id}" class="hidden" checked>
-                        <div class="w-6 h-6 rounded-md border-2 border-gray-600 flex items-center justify-center mr-4 transition-colors">
-                            <i class="ph-bold ph-check text-white text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-sm text-gray-200 leading-tight">${l.title}</h3>
-                            <p class="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider">${l.topics.length} Argomenti</p>
-                        </div>
-                    </label>`;
-            });
-        }
+                if (mode === 'pattern') {
+                    document.getElementById('view-game').classList.add('hidden');
+                    document.getElementById('view-pattern').classList.remove('hidden');
+                    document.getElementById('nav-pattern').classList.add('text-purple-400');
+                    this.renderPattern();
+                } else {
+                    document.getElementById('view-pattern').classList.add('hidden');
+                    document.getElementById('view-game').classList.remove('hidden');
+                    document.getElementById('nav-mix').classList.add('text-purple-400');
+                    if (mode === 'mix') this.initGame('mix');
+                }
+            },
 
-        function startStudyMode() {
-            const selectedIds = Array.from(document.querySelectorAll('#selection-list input:checked')).map(cb => parseInt(cb.value));
-            if (selectedIds.length === 0) return alert("Seleziona almeno un argomento!");
-            document.getElementById('view-selection').style.transform = "translateY(100%)";
-            document.getElementById('view-pattern').classList.add('hidden');
-            document.getElementById('view-game').classList.remove('hidden');
-            initGame('study', selectedIds);
-        }
-
-        function renderPattern() {
-            const container = document.getElementById('view-pattern');
-            if(container.innerHTML.trim().length > 50) return;
-
-            let html = '';
-            appData.lessons.forEach(l => {
-                l.topics.forEach(t => {
-                    const imgSVG = t.imageCode ? `<div class="w-16 h-16 mx-auto mb-2">${getSignalSVG(t.imageCode)}</div>` : '';
-                    html += `<div class="mb-6">
-                        ${imgSVG}
-                        <h3 class="text-xs font-bold text-purple-400 uppercase mb-2 pl-2 border-l-2 border-purple-500">${t.title}</h3>`;
-                    
-                    t.roots.forEach(r => {
-                        html += `<div class="bg-[#18181b] rounded-xl p-4 mb-3 border border-white/5 shadow-sm">
-                            <p class="text-sm text-gray-400 mb-3 border-b border-white/5 pb-2">${r.text}</p>
-                            <div class="space-y-2">`;
-                        r.items.forEach(i => {
-                             html += `
-                                <div class="flex gap-3 items-start">
-                                    <i class="ph-fill ${i.isTrue ? 'ph-check-circle text-green-500' : 'ph-x-circle text-red-500'} mt-0.5 text-lg shrink-0"></i>
-                                    <span class="text-sm text-gray-200 leading-snug">${i.text}</span>
-                                </div>`;
-                        });
-                        html += `</div></div>`;
+            toggleSelectionView: function() {
+                const el = document.getElementById('view-selection');
+                const isOpen = el.style.transform === "translateY(0%)";
+                
+                if (!isOpen) {
+                    this.renderSelectionList();
+                    el.style.transform = "translateY(0%)";
+                    document.querySelectorAll('nav button').forEach(b => {
+                        b.classList.remove('text-purple-400');
+                        b.classList.add('text-gray-500');
                     });
-                    html += `</div>`;
-                });
-            });
-            container.innerHTML = html;
-        }
+                    document.getElementById('nav-study').classList.add('text-purple-400');
+                } else {
+                    el.style.transform = "translateY(100%)";
+                    this.setMode('mix');
+                }
+            },
 
+            renderSelectionList: function() {
+                const container = document.getElementById('selection-list');
+                container.innerHTML = '';
+                this.data.lessons.forEach(l => {
+                    container.innerHTML += `
+                        <label class="custom-checkbox flex items-center p-4 rounded-xl bg-[#18181b] border border-white/5 cursor-pointer active:scale-[0.98] transition-transform shadow-sm">
+                            <input type="checkbox" value="${l.id}" class="hidden" checked>
+                            <div class="w-6 h-6 rounded-md border-2 border-gray-600 flex items-center justify-center mr-4 transition-colors">
+                                <i class="ph-bold ph-check text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-sm text-gray-200 leading-tight">${l.title}</h3>
+                                <p class="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider">${l.topics.length} Argomenti</p>
+                            </div>
+                        </label>`;
+                });
+            },
+
+            startStudyMode: function() {
+                const selectedIds = Array.from(document.querySelectorAll('#selection-list input:checked')).map(cb => parseInt(cb.value));
+                if (selectedIds.length === 0) return alert("Seleziona almeno un argomento!");
+                document.getElementById('view-selection').style.transform = "translateY(100%)";
+                document.getElementById('view-pattern').classList.add('hidden');
+                document.getElementById('view-game').classList.remove('hidden');
+                this.initGame('study', selectedIds);
+            },
+
+            renderPattern: function() {
+                const container = document.getElementById('view-pattern');
+                if(container.innerHTML.trim().length > 50) return;
+
+                let html = '';
+                this.data.lessons.forEach(l => {
+                    l.topics.forEach(t => {
+                        const imgSVG = t.imageCode ? `<div class="w-16 h-16 mx-auto mb-2">${this.getSignalSVG(t.imageCode)}</div>` : '';
+                        html += `<div class="mb-6 text-center">
+                            ${imgSVG}
+                            <h3 class="text-xs font-bold text-purple-400 uppercase mb-2 border-b border-purple-500/30 pb-1 inline-block">${t.title}</h3>`;
+                        
+                        t.roots.forEach(r => {
+                            html += `<div class="bg-[#18181b] rounded-xl p-4 mb-3 border border-white/5 text-left shadow-sm">
+                                <p class="text-sm text-gray-400 mb-3 border-b border-white/5 pb-2">${r.text}</p>
+                                <div class="space-y-2">`;
+                            r.items.forEach(i => {
+                                 html += `
+                                    <div class="flex gap-3 items-start">
+                                        <i class="ph-fill ${i.isTrue ? 'ph-check-circle text-green-500' : 'ph-x-circle text-red-500'} mt-0.5 text-lg shrink-0"></i>
+                                        <span class="text-sm text-gray-200 leading-snug">${i.text}</span>
+                                    </div>`;
+                            });
+                            html += `</div></div>`;
+                        });
+                        html += `</div>`;
+                    });
+                });
+                container.innerHTML = html;
+            }
+        };
+
+        // Start
         window.onload = () => {
-            parseData();
-            initGame('mix');
+            app.parseData();
+            app.initGame('mix');
         };
     </script>
 </body>
